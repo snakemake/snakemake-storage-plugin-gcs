@@ -4,6 +4,7 @@ from snakemake_interface_storage_plugins.settings import StorageProviderSettings
 from snakemake_interface_storage_plugins.storage_provider import (
     StorageProviderBase,
     StorageQueryValidationResult,
+    ExampleQuery,
 )
 
 from snakemake.exceptions import WorkflowError, CheckSumMismatchException
@@ -14,6 +15,7 @@ from snakemake_interface_storage_plugins.storage_object import (
     # TODO do we want to use this instead of our custom one?
     retry_decorator,
 )
+from snakemake_interface_storage_plugins.common import Operation
 from snakemake_interface_storage_plugins.io import IOCacheStorageInterface
 from urllib.parse import urlparse
 import base64
@@ -203,6 +205,34 @@ class StorageProvider(StorageProviderBase):
             valid=True,
         )
 
+    @classmethod
+    def example_query(cls) -> ExampleQuery:
+        """
+        Return an example query with description for this storage provider.
+        """
+        return ExampleQuery(
+            query="s3://mybucket/myfile.txt",
+            description="A file in an S3 bucket",
+        )
+
+    def use_rate_limiter(self) -> bool:
+        """Return False if no rate limiting is needed for this provider."""
+        return False
+
+    def default_max_requests_per_second(self) -> float:
+        """Return the default maximum number of requests per second for this storage
+        provider."""
+        ...
+
+    def rate_limiter_key(self, query: str, operation: Operation):
+        """Return a key for identifying a rate limiter given a query and an operation.
+
+        This is used to identify a rate limiter for the query.
+        E.g. for a storage provider like http that would be the host name.
+        For s3 it might be just the endpoint URL.
+        """
+        ...
+
     def list_objects(self, query: Any) -> Iterable[str]:
         """
         Return an iterator over all objects in the storage that match the query.
@@ -235,6 +265,10 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
             self.key = parsed.path.lstrip("/")
             self._local_suffix = f"{self.bucket_name}/{self.key}"
         self._is_dir = None
+
+    def cleanup(self):
+        # Close any open connections, unmount stuff, etc.
+        pass
 
     async def inventory(self, cache: IOCacheStorageInterface):
         """
@@ -279,7 +313,9 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         return f"{self.bucket_name}/{os.path.dirname(self.blob.name)}"
 
     def local_suffix(self) -> str:
-        """Return a unique suffix for the local path, determined from self.query."""
+        """
+        Return a unique suffix for the local path, determined from self.query.
+        """
         ...
 
     def close(self):
