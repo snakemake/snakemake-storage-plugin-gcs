@@ -338,47 +338,35 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         """
         Return the modification time
         """
-        if self.exists():
-            if self.is_directory():
-                return max(
-                    blob.updated.timestamp() for blob in self.directory_entries()
-                )
-            else:
-                self.update_blob()
-                return self.blob.updated.timestamp()
-        else:
-            raise WorkflowError(
-                "The file does not seem to exist remotely: %s" % self.local_file()
+        if self.is_directory():
+            return max(
+                blob.updated.timestamp() for blob in self.directory_entries()
             )
+        else:
+            self.update_blob()
+            return self.blob.updated.timestamp()
 
     @retry.Retry(predicate=google_cloud_retry_predicate)
     def size(self) -> int:
         """
         Return the size in bytes
         """
-        if self.exists():
-            if self.is_directory():
-                return 0
-            else:
-                self.update_blob()
-                return self.blob.size // 1024
+        if self.is_directory():
+            return 0
         else:
-            return self._iofile.size_local
+            self.update_blob()
+            return self.blob.size // 1024
 
     @retry.Retry(predicate=google_cloud_retry_predicate, deadline=600)
     def retrieve_object(self):
         """
         Ensure that the object is accessible locally under self.local_path()
-
-        In the previous GLS.py this was _download. We retry with 10 minutes.
         """
-        if not self.exists():
-            return None
-
         # Create just a directory, or a file itself
         if self.is_directory():
-            return self._download_directory()
-        return download_blob(self.blob, self.local_file())
+            self._download_directory()
+        else:
+            download_blob(self.blob, self.local_path())
 
     # The following to methods are only required if the class inherits from
     # StorageObjectReadWrite.
@@ -400,7 +388,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
                 self.update_blob()
 
             # Distinguish between single file, and folder
-            f = self.local_file()
+            f = self.local_path()
             if os.path.isdir(f):
                 # Ensure the "directory" exists
                 self.blob.upload_from_string(
@@ -470,8 +458,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         Handle download of a storage folder (assists retrieve_blob)
         """
         # Create the directory locally
-        # TODO check that local_file is still valid
-        os.makedirs(self.local_file(), exist_ok=True)
+        self.local_path().mkdir(exist_ok=True)
 
         for blob in self.directory_entries():
             local_name = f"{blob.bucket.name}/{blob.name}"
@@ -481,9 +468,6 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
                 continue
 
             download_blob(blob, local_name)
-
-        # Return the root directory
-        return self.local_file()
 
     @retry.Retry(predicate=google_cloud_retry_predicate)
     def update_blob(self):
