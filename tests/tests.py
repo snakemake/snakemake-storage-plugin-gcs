@@ -58,6 +58,7 @@ class TestStorage(TestStorageBase):
             print(obj.blob._properties)
             obj.blob.reload()
             print(obj.blob._properties)
+            print(obj.bucket.get_blob(obj.key).size)
             print(obj.size())
 
             if not self.store_only:
