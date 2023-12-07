@@ -29,7 +29,7 @@ class TestStorage(TestStorageBase):
 
     def get_storage_provider_settings(self) -> Optional[StorageProviderSettingsBase]:
         # instantiate StorageProviderSettings of this plugin as appropriate
-        return StorageProviderSettings(project="snakemake-test-project")
+        return StorageProviderSettings(project="test")
 
     def get_example_args(self) -> List[str]:
         return []
