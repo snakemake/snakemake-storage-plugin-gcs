@@ -22,7 +22,6 @@ import os
 import google.cloud.exceptions
 from google.cloud import storage
 from google.api_core import retry
-from google.api_core.client_options import ClientOptions
 from google_crc32c import Checksum
 
 
@@ -174,6 +173,7 @@ class StorageProvider(StorageProviderBase):
     def __post_init__(self):
         # TODO debug, remove
         from google.auth.credentials import AnonymousCredentials
+
         self.client = storage.Client(credentials=AnonymousCredentials())
 
     @classmethod
@@ -339,9 +339,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         Return the modification time
         """
         if self.is_directory():
-            return max(
-                blob.updated.timestamp() for blob in self.directory_entries()
-            )
+            return max(blob.updated.timestamp() for blob in self.directory_entries())
         else:
             self.update_blob()
             return self.blob.updated.timestamp()
