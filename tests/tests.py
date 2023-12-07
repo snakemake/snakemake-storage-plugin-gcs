@@ -55,6 +55,9 @@ class TestStorage(TestStorageBase):
 
             assert obj.exists()
             print(obj.mtime())
+            print(obj.blob._properties)
+            obj.blob.reload()
+            print(obj.blob._properties)
             print(obj.size())
 
             if not self.store_only:
