@@ -325,7 +325,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         """
         Return true if the object exists.
         """
-        return self.blob.exists() or any(self.directory_entries())
+        return self.bucket.exists() and self.blob.exists() or any(self.directory_entries())
 
     @retry.Retry(predicate=google_cloud_retry_predicate)
     def mtime(self) -> float:
