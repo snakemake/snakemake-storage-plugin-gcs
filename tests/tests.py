@@ -7,7 +7,7 @@ from snakemake_interface_storage_plugins.settings import StorageProviderSettings
 
 from snakemake_storage_plugin_gcs import StorageProvider, StorageProviderSettings
 
-os.environ["STORAGE_EMULATOR_ENV_VAR"] = "http://localhost:5050"
+os.environ["STORAGE_EMULATOR_HOST"] = "http://localhost:5050"
 
 
 class TestStorage(TestStorageBase):
