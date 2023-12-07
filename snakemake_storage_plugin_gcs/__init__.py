@@ -328,7 +328,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         """
 
         def exists():
-            return self.blob.exists() or any(self.directory_entries())
+            return (self.blob is not None and self.blob.exists()) or any(self.directory_entries())
 
         if exists():
             return True
@@ -477,7 +477,6 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         Re-retrieve a blob to update the object (in storage).
         """
         self._blob = self.bucket.get_blob(self.key)
-        print(self._blob, file=sys.stderr)
 
     # TODO these should be lazy_property from snakemake interface common
     @property

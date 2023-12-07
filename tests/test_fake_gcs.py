@@ -31,3 +31,8 @@ for bucket in client.list_buckets():
             s = b.download_to_filename(temp_file.name)
             temp_file.seek(0, 0)
             print(temp_file.read(), "\n")
+
+# Create a new Bucket
+bucket = client.bucket("snakemake-test-bucket")
+client.create_bucket(bucket)
+bucket.get_blob("test-file.txt").upload_from_string("Hello World!")
