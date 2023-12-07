@@ -35,10 +35,32 @@ class TestStorage(TestStorageBase):
     def get_example_args(self) -> List[str]:
         return []
 
-    def test_storage_not_existing_dbg(self, tmp_path):
-        obj = self._get_obj(tmp_path, self.get_query_not_existing(tmp_path))
-        assert not obj.bucket.exists()
-        assert not obj.blob.exists()
-        assert not obj.exists()
-        print(obj.directory_entries(), file=sys.stderr)
-        print(any(obj.directory_entries()), file=sys.stderr)
+    def test_storage_dbg(self, tmp_path):
+        assert not (
+            self.store_only and self.retrieve_only
+        ), "store_only and retrieve_only may not be True at the same time"
+
+        obj = self._get_obj(tmp_path, self.get_query(tmp_path))
+
+        stored = False
+        try:
+            if not self.retrieve_only:
+                obj.local_path().parent.mkdir(parents=True, exist_ok=True)
+                with open(obj.local_path(), "w") as f:
+                    f.write("test")
+                    f.flush()
+                obj.store_object()
+                stored = True
+                obj.local_path().unlink()
+
+            assert obj.exists()
+            print(obj.mtime())
+            print(obj.size())
+
+            if not self.store_only:
+                obj.local_path().parent.mkdir(parents=True, exist_ok=True)
+                obj.retrieve_object()
+
+        finally:
+            if not self.retrieve_only and stored and self.delete:
+                obj.remove()

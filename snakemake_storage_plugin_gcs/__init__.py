@@ -334,10 +334,14 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         """
         Return the modification time
         """
+        def get_mtime(blob):
+            blob.reload()
+            return blob.updated.timestamp()
+
         if self.is_directory():
-            return max(blob.updated.timestamp() for blob in self.directory_entries())
+            return max(get_mtime(blob) for blob in self.directory_entries())
         else:
-            return self.blob.updated.timestamp()
+            return get_mtime(self.blob)
 
     @retry.Retry(predicate=google_cloud_retry_predicate)
     def size(self) -> int:
