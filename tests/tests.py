@@ -28,6 +28,7 @@ class TestStorage(TestStorageBase):
         # https://www.claritician.com/how-to-mock-google-cloud-storage-during-development
         return StorageProviderSettings(
             api_endpoint="http://localhost:5050",
+            api_key="test",
         )
 
     def get_example_args(self) -> List[str]:

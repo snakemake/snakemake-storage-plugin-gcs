@@ -75,6 +75,15 @@ class StorageProviderSettings(StorageProviderSettingsBase):
             "required": False,
         },
     )
+    api_key: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": "Google Cloud API key. If not specified, default credentials file "
+            "will be used.",
+            "env_var": False,
+            "required": False,
+        },
+    )
 
 
 class Crc32cCalculator:
@@ -181,7 +190,9 @@ class StorageProvider(StorageProviderBase):
 
     def __post_init__(self):
         self.client = storage.Client(
-            client_options=ClientOptions(api_endpoint=self.settings.api_endpoint)
+            client_options=ClientOptions(
+                api_endpoint=self.settings.api_endpoint, api_key=self.settings.api_key
+            ),
         )
 
     @classmethod
