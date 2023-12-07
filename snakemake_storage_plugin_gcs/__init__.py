@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 import sys
 from typing import Any, Iterable, List, Optional
+from snakemake_interface_common.utils import lazy_property
 from snakemake_interface_storage_plugins.settings import StorageProviderSettingsBase
 from snakemake_interface_storage_plugins.storage_provider import (
     StorageProviderBase,
@@ -265,6 +266,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         self.key = parsed.path.lstrip("/")
         self._local_suffix = self._local_suffix_from_key(self.key)
         self._is_dir = None
+
         self.update_blob()
 
     def cleanup(self):
@@ -326,16 +328,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         """
         Return true if the object exists.
         """
-
-        def exists():
-            return (self.blob is not None and self.blob.exists()) or any(self.directory_entries())
-
-        if exists():
-            return True
-
-        # The blob object can get out of sync, one last try!
-        self.update_blob()
-        return exists()
+        return self.blob is not None or any(self.directory_entries())
 
     @retry.Retry(predicate=google_cloud_retry_predicate)
     def mtime(self) -> float:
@@ -386,8 +379,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         # self.local_path().
         try:
             if not self.bucket.exists():
-                self.bucket.create()
-                self.update_blob()
+                self.client.create_bucket(self.bucket)
 
             # Distinguish between single file, and folder
             f = self.local_path()
@@ -471,27 +463,19 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
 
             download_blob(blob, local_name)
 
-    @retry.Retry(predicate=google_cloud_retry_predicate)
-    def update_blob(self):
-        """
-        Re-retrieve a blob to update the object (in storage).
-        """
-        self._blob = self.bucket.get_blob(self.key)
-
-    # TODO these should be lazy_property from snakemake interface common
-    @property
+    @lazy_property
     def bucket(self):
         return self.client.bucket(
             self.bucket_name, user_project=self.provider.settings.project
         )
+    
+    @property
+    def blob(self):
+        return self.bucket.blob(self.key)
 
     @property
     def client(self):
         return self.provider.client
-
-    @property
-    def blob(self):
-        return self._blob
 
     # Note from @vsoch - functions removed include:
     # name

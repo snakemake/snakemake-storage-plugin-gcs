@@ -35,4 +35,4 @@ for bucket in client.list_buckets():
 # Create a new Bucket
 bucket = client.bucket("snakemake-test-bucket")
 client.create_bucket(bucket)
-bucket.get_blob("test-file.txt").upload_from_string("Hello World!")
+bucket.blob("test-file.txt").upload_from_string("Hello World!")
