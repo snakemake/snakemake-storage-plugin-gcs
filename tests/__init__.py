@@ -4,12 +4,11 @@ from snakemake_interface_storage_plugins.tests import TestStorageBase
 from snakemake_interface_storage_plugins.storage_provider import StorageProviderBase
 from snakemake_interface_storage_plugins.settings import StorageProviderSettingsBase
 
-from snakemake_storage_plugin_s3 import StorageProvider, StorageProviderSettings
+from snakemake_storage_plugin_gcs import StorageProvider, StorageProviderSettings
 
 
-class TestStorageNoSettings(TestStorageBase):
+class TestStorage(TestStorageBase):
     __test__ = True
-    retrieve_only = False
 
     def get_query(self, tmp_path) -> str:
         return "gcs://snakemake-test-bucket/test-file.txt"

@@ -15,7 +15,7 @@ jobs:
         id: release
         with:
           release-type: python
-          package-name: snakemake-storage-plugin-gs
+          package-name: snakemake-storage-plugin-gcs
 
   publish:
     runs-on: ubuntu-latest
