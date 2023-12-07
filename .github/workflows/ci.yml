@@ -90,7 +90,7 @@ jobs:
 
       - name: Test fake GCS
         run:
-          python tests/test_fake_gcs.py
+          poetry run python tests/test_fake_gcs.py
 
       - name: Run pytest
         run: poetry run coverage run -m pytest tests/tests.py
