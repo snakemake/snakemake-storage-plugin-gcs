@@ -1,5 +1,4 @@
 import os
-import sys
 from typing import List, Optional, Type
 import uuid
 from snakemake_interface_storage_plugins.tests import TestStorageBase

@@ -173,10 +173,7 @@ class StorageProvider(StorageProviderBase):
     # futher stuff.
 
     def __post_init__(self):
-        # TODO debug, remove
-        from google.auth.credentials import AnonymousCredentials
-
-        self.client = storage.Client(credentials=AnonymousCredentials())
+        self.client = storage.Client()
 
     @classmethod
     def is_valid_query(cls, query: str) -> StorageQueryValidationResult:
@@ -334,6 +331,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         """
         Return the modification time
         """
+
         def get_mtime(blob):
             if blob.updated is None:
                 blob.reload()
