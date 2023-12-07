@@ -9,7 +9,7 @@ from snakemake_storage_plugin_gcs import StorageProvider, StorageProviderSetting
 
 # Use local fake server as outlined here:
 # https://github.com/fsouza/fake-gcs-server
-os.environ["STORAGE_EMULATOR_HOST"] = "http://localhost:5050"
+os.environ["STORAGE_EMULATOR_HOST"] = "http://localhost:4443"
 
 
 class TestStorage(TestStorageBase):
