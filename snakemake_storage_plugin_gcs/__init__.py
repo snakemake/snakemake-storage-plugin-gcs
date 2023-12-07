@@ -5,6 +5,7 @@ from snakemake_interface_storage_plugins.storage_provider import (
     StorageProviderBase,
     StorageQueryValidationResult,
     ExampleQuery,
+    QueryType,
 )
 
 from snakemake.exceptions import WorkflowError, CheckSumMismatchException
@@ -209,6 +210,7 @@ class StorageProvider(StorageProviderBase):
         return [
             ExampleQuery(
                 query="gcs://mybucket/myfile.txt",
+                type=QueryType.ANY,
                 description="A file in an google storage (GCS) bucket",
             )
         ]
@@ -284,23 +286,24 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
          - cache.mtime
          - cache.size
         """
-        if self.get_inventory_parent() in cache.exists_in_storage:
-            # bucket has been inventorized before, stop here
-            return
+        # TODO enable again later
+        # if self.get_inventory_parent() in cache.exists_in_storage:
+        #     # bucket has been inventorized before, stop here
+        #     return
 
-        # check if bucket exists
-        if not self.bucket_exists():
-            cache.exists_in_storage[self.cache_key()] = False
-            cache.exists_in_storage[self.get_inventory_parent()] = False
-        else:
-            subfolder = os.path.dirname(self.blob.name)
-            for blob in self.client.list_blobs(self.bucket_name, prefix=subfolder):
-                # By way of being listed, it exists. mtime is a datetime object
-                key = self.cache_key(self._local_suffix_from_key(blob.name))
-                cache.exists_in_storage[key] = True
-                cache.mtime[key] = Mtime(remote=blob.updated.timestamp())
-                cache.size[key] = blob.size
-                # TODO cache "is directory" information
+        # # check if bucket exists
+        # if not self.bucket_exists():
+        #     cache.exists_in_storage[self.cache_key()] = False
+        #     cache.exists_in_storage[self.get_inventory_parent()] = False
+        # else:
+        #     subfolder = os.path.dirname(self.blob.name)
+        #     for blob in self.client.list_blobs(self.bucket_name, prefix=subfolder):
+        #         # By way of being listed, it exists. mtime is a datetime object
+        #         key = self.cache_key(self._local_suffix_from_key(blob.name))
+        #         cache.exists_in_storage[key] = True
+        #         cache.mtime[key] = Mtime(remote=blob.updated.timestamp())
+        #         cache.size[key] = blob.size
+        #         # TODO cache "is directory" information
 
     def get_inventory_parent(self) -> Optional[str]:
         """
@@ -487,7 +490,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
 
     @property
     def blob(self):
-        return self.bucket.blob(self.key)
+        return self._blob
 
     # Note from @vsoch - functions removed include:
     # name
