@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-import re
 from typing import Any, Iterable, List, Optional
 from snakemake_interface_storage_plugins.settings import StorageProviderSettingsBase
 from snakemake_interface_storage_plugins.storage_provider import (
@@ -181,7 +180,9 @@ class StorageProvider(StorageProviderBase):
     # futher stuff.
 
     def __post_init__(self):
-        self.client = storage.Client(client_options=ClientOptions(api_endpoint=self.settings.api_endpoint))
+        self.client = storage.Client(
+            client_options=ClientOptions(api_endpoint=self.settings.api_endpoint)
+        )
 
     @classmethod
     def is_valid_query(cls, query: str) -> StorageQueryValidationResult:
