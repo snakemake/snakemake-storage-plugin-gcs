@@ -56,7 +56,7 @@ class TestStorage(TestStorageBase):
             assert obj.exists()
             print(obj.mtime())
             print(obj.blob._properties)
-            obj.blob.reload()
+            obj.blob.reload(projection="full")
             print(obj.blob._properties)
             print(obj.bucket.get_blob(obj.key).size)
             print(obj.size())
