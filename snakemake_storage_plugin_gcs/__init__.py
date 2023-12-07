@@ -259,12 +259,12 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
     # futher stuff.
 
     def __post_init__(self):
-        if self.is_valid_query():
-            parsed = urlparse(self.query)
-            self.bucket_name = parsed.netloc
-            self.key = parsed.path.lstrip("/")
-            self._local_suffix = self._local_suffix_from_key(self.key)
+        parsed = urlparse(self.query)
+        self.bucket_name = parsed.netloc
+        self.key = parsed.path.lstrip("/")
+        self._local_suffix = self._local_suffix_from_key(self.key)
         self._is_dir = None
+        self.update_blob()
 
     def cleanup(self):
         # Close any open connections, unmount stuff, etc.
