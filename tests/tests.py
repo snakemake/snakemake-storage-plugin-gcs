@@ -39,5 +39,6 @@ class TestStorage(TestStorageBase):
         obj = self._get_obj(tmp_path, self.get_query_not_existing(tmp_path))
         assert not obj.bucket.exists()
         assert not obj.blob.exists()
+        assert not obj.exists()
         print(obj.directory_entries(), file=sys.stderr)
         print(any(obj.directory_entries()), file=sys.stderr)
