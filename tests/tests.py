@@ -1,4 +1,5 @@
 import os
+import sys
 from typing import List, Optional, Type
 import uuid
 from snakemake_interface_storage_plugins.tests import TestStorageBase
@@ -37,3 +38,4 @@ class TestStorage(TestStorageBase):
     def test_storage_not_existing_dbg(self, tmp_path):
         obj = self._get_obj(tmp_path, self.get_query_not_existing(tmp_path))
         assert not obj.blob.exists()
+        print(list(obj.directory_entries()), file=sys.stderr)
