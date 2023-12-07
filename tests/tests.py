@@ -33,3 +33,7 @@ class TestStorage(TestStorageBase):
 
     def get_example_args(self) -> List[str]:
         return []
+
+    def test_storage_not_existing_dbg(self, tmp_path):
+        obj = self._get_obj(tmp_path, self.get_query_not_existing(tmp_path))
+        assert not obj.blob.exists()
