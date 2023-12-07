@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+import sys
 from typing import Any, Iterable, List, Optional
 from snakemake_interface_storage_plugins.settings import StorageProviderSettingsBase
 from snakemake_interface_storage_plugins.storage_provider import (
@@ -476,6 +477,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         Re-retrieve a blob to update the object (in storage).
         """
         self._blob = self.bucket.get_blob(self.key)
+        print(self._blob, file=sys.stderr)
 
     # TODO these should be lazy_property from snakemake interface common
     @property
