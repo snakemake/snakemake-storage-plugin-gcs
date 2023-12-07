@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Optional
+import re
+from typing import Any, Iterable, List, Optional
 from snakemake_interface_storage_plugins.settings import StorageProviderSettingsBase
 from snakemake_interface_storage_plugins.storage_provider import (
     StorageProviderBase,
@@ -12,24 +13,17 @@ from snakemake_interface_storage_plugins.storage_object import (
     StorageObjectRead,
     StorageObjectWrite,
     StorageObjectGlob,
-    # TODO do we want to use this instead of our custom one?
-    retry_decorator,
 )
 from snakemake_interface_storage_plugins.common import Operation
-from snakemake_interface_storage_plugins.io import IOCacheStorageInterface
+from snakemake_interface_storage_plugins.io import IOCacheStorageInterface, Mtime
 from urllib.parse import urlparse
 import base64
 import os
 
-try:
-    from google.cloud import storage
-    from google.api_core import retry
-    from google_crc32c import Checksum
-except ImportError as e:
-    raise WorkflowError(
-        "The Python 3 packages 'google-cloud-storage' and `google-crc32c` "
-        "need to be installed to use GS remote() file functionality. %s" % e.msg
-    )
+import google.cloud.exceptions
+from google.cloud import storage
+from google.api_core import retry
+from google_crc32c import Checksum
 
 
 # Optional:
@@ -194,7 +188,7 @@ class StorageProvider(StorageProviderBase):
                 valid=False,
                 reason=f"cannot be parsed as URL ({e})",
             )
-        if parsed.scheme != "s3":
+        if parsed.scheme != "gs":
             return StorageQueryValidationResult(
                 query=query,
                 valid=False,
@@ -206,14 +200,16 @@ class StorageProvider(StorageProviderBase):
         )
 
     @classmethod
-    def example_query(cls) -> ExampleQuery:
+    def example_queries(cls) -> List[ExampleQuery]:
         """
         Return an example query with description for this storage provider.
         """
-        return ExampleQuery(
-            query="s3://mybucket/myfile.txt",
-            description="A file in an S3 bucket",
-        )
+        return [
+            ExampleQuery(
+                query="gs://mybucket/myfile.txt",
+                description="A file in an google storage (GS) bucket",
+            )
+        ]
 
     def use_rate_limiter(self) -> bool:
         """Return False if no rate limiting is needed for this provider."""
@@ -263,7 +259,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
             parsed = urlparse(self.query)
             self.bucket_name = parsed.netloc
             self.key = parsed.path.lstrip("/")
-            self._local_suffix = f"{self.bucket_name}/{self.key}"
+            self._local_suffix = self._local_suffix_from_key(self.key)
         self._is_dir = None
 
     def cleanup(self):
@@ -286,58 +282,54 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
          - cache.mtime
          - cache.size
         """
-        if cache.remaining_wait_time <= 0:
-            # No more time to create inventory.
+        if self.get_inventory_parent() in cache.exists_in_storage:
+            # bucket has been inventorized before, stop here
             return
 
-        start_time = time.time()
-        subfolder = os.path.dirname(self.blob.name)
-        for blob in self.client.list_blobs(self.bucket_name, prefix=subfolder):
-            # By way of being listed, it exists. mtime is a datetime object
-            name = f"{blob.bucket.name}/{blob.name}"
-            cache.exists_remote[name] = True
-            cache.mtime[name] = snakemake.io.Mtime(remote=blob.updated.timestamp())
-            cache.size[name] = blob.size
-            # TODO cache "is directory" information
-
-        cache.remaining_wait_time -= time.time() - start_time
-
-        # Mark bucket and prefix as having an inventory, such that this method is
-        # only called once for the subfolder in the bucket.
-        cache.exists_remote.has_inventory.add(f"{self.bucket_name}/{subfolder}")
+        # check if bucket exists
+        if not self.bucket_exists():
+            cache.exists_in_storage[self.cache_key()] = False
+            cache.exists_in_storage[self.get_inventory_parent()] = False
+        else:
+            subfolder = os.path.dirname(self.blob.name)
+            for blob in self.client.list_blobs(self.bucket_name, prefix=subfolder):
+                # By way of being listed, it exists. mtime is a datetime object
+                key = self.cache_key(self._local_suffix_from_key(blob.name))
+                cache.exists_in_storage[key] = True
+                cache.mtime[key] = Mtime(remote=blob.updated.timestamp())
+                cache.size[key] = blob.size
+                # TODO cache "is directory" information
 
     def get_inventory_parent(self) -> Optional[str]:
         """
         Return the parent directory of this object.
         """
-        return f"{self.bucket_name}/{os.path.dirname(self.blob.name)}"
+        return self.cache_key(self.bucket_name)
 
     def local_suffix(self) -> str:
         """
         Return a unique suffix for the local path, determined from self.query.
         """
-        ...
+        return self._local_suffix
 
-    def close(self):
-        # Close any open connections, unmount stuff, etc.
-        ...
+    def _local_suffix_from_key(self, key: str) -> str:
+        return f"{self.bucket_name}/{key}"
 
-    # Fallible methods should implement some retry logic.
-    # The easiest way to do this (but not the only one) is to use the retry_decorator
-    # provided by snakemake-interface-storage-plugins.
     @retry.Retry(predicate=google_cloud_retry_predicate)
     def exists(self) -> bool:
         """
         Return true if the object exists.
         """
-        if self.blob.exists():
-            return True
-        elif any(self.directory_entries()):
+
+        def exists():
+            return self.blob.exists() or any(self.directory_entries())
+
+        if exists():
             return True
 
         # The blob object can get out of sync, one last try!
         self.update_blob()
-        return self.blob.exists()
+        return exists()
 
     @retry.Retry(predicate=google_cloud_retry_predicate)
     def mtime(self) -> float:
@@ -464,7 +456,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         """
         Determine if a a file is a file or directory.
         """
-        if snakemake.io.is_flagged(self.file(), "directory"):
+        if self.local_path().exists() and self.local_path().is_dir():
             return True
         elif self.blob.exists():
             return False
