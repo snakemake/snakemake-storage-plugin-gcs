@@ -23,6 +23,7 @@ import os
 import google.cloud.exceptions
 from google.cloud import storage
 from google.api_core import retry
+from google.api_core.client_options import ClientOptions
 from google_crc32c import Checksum
 
 
@@ -65,6 +66,14 @@ class StorageProviderSettings(StorageProviderSettingsBase):
             "env_var": False,
             "required": False,
             "type": int,
+        },
+    )
+    api_endpoint: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": "Google Cloud API endpoint",
+            "env_var": False,
+            "required": False,
         },
     )
 
@@ -172,7 +181,7 @@ class StorageProvider(StorageProviderBase):
     # futher stuff.
 
     def __post_init__(self):
-        self.client = storage.Client()
+        self.client = storage.Client(client_options=ClientOptions(api_endpoint=self.settings.api_endpoint))
 
     @classmethod
     def is_valid_query(cls, query: str) -> StorageQueryValidationResult:
@@ -188,11 +197,11 @@ class StorageProvider(StorageProviderBase):
                 valid=False,
                 reason=f"cannot be parsed as URL ({e})",
             )
-        if parsed.scheme != "gs":
+        if parsed.scheme != "gcs":
             return StorageQueryValidationResult(
                 query=query,
                 valid=False,
-                reason="must start with gs (gs://...)",
+                reason="must start with gcs (gcs://...)",
             )
         return StorageQueryValidationResult(
             query=query,
@@ -206,8 +215,8 @@ class StorageProvider(StorageProviderBase):
         """
         return [
             ExampleQuery(
-                query="gs://mybucket/myfile.txt",
-                description="A file in an google storage (GS) bucket",
+                query="gcs://mybucket/myfile.txt",
+                description="A file in an google storage (GCS) bucket",
             )
         ]
 
@@ -504,18 +513,6 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
     @property
     def blob(self):
         return self.bucket.blob(self.key)
-
-    def parse(self):
-        """
-        TODO note from vsoch - this might belong in the provider parse or the
-        post init to validate the bucket / local file are correct.
-        """
-        m = re.search("(?P<bucket>[^/]*)/(?P<key>.*)", self.local_file())
-        if len(m.groups()) != 2:
-            raise WorkflowError(
-                "GS remote file {} does not have the form "
-                "<bucket>/<key>.".format(self.local_file())
-            )
 
     # Note from @vsoch - functions removed include:
     # name

@@ -84,6 +84,10 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
+      - name: Run fake GCS server
+        run: |
+          docker run -d -p 5050:4443 -v storage_data:/storage fsouza/fake-gcs-server -scheme http
+
       - name: Run pytest
         run: poetry run coverage run -m pytest tests/tests.py
 
