@@ -267,8 +267,6 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         self._local_suffix = self._local_suffix_from_key(self.key)
         self._is_dir = None
 
-        self.update_blob()
-
     def cleanup(self):
         # Close any open connections, unmount stuff, etc.
         pass
@@ -338,7 +336,6 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         if self.is_directory():
             return max(blob.updated.timestamp() for blob in self.directory_entries())
         else:
-            self.update_blob()
             return self.blob.updated.timestamp()
 
     @retry.Retry(predicate=google_cloud_retry_predicate)
@@ -349,7 +346,6 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         if self.is_directory():
             return 0
         else:
-            self.update_blob()
             return self.blob.size // 1024
 
     @retry.Retry(predicate=google_cloud_retry_predicate, deadline=600)
