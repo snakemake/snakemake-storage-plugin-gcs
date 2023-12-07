@@ -24,6 +24,8 @@ class TestStorage(TestStorageBase):
 
     def get_storage_provider_settings(self) -> Optional[StorageProviderSettingsBase]:
         # instantiate StorageProviderSettings of this plugin as appropriate
+        # Use local fake server as outlined here:
+        # https://www.claritician.com/how-to-mock-google-cloud-storage-during-development
         return StorageProviderSettings(
             api_endpoint="http://localhost:5050",
         )
