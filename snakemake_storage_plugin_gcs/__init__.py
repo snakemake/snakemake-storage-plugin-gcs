@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-import sys
 from typing import Any, Iterable, List, Optional
 from snakemake_interface_common.utils import lazy_property
 from snakemake_interface_storage_plugins.settings import StorageProviderSettingsBase
@@ -17,7 +16,7 @@ from snakemake_interface_storage_plugins.storage_object import (
     StorageObjectGlob,
 )
 from snakemake_interface_storage_plugins.common import Operation
-from snakemake_interface_storage_plugins.io import IOCacheStorageInterface, Mtime
+from snakemake_interface_storage_plugins.io import IOCacheStorageInterface
 from urllib.parse import urlparse
 import base64
 import os
@@ -464,7 +463,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         return self.client.bucket(
             self.bucket_name, user_project=self.provider.settings.project
         )
-    
+
     @property
     def blob(self):
         return self.bucket.blob(self.key)
