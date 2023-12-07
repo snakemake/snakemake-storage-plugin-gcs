@@ -354,6 +354,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         else:
             if self.blob.size is None:
                 self.blob.reload()
+                assert self.blob.size is not None
             return self.blob.size // 1024
 
     @retry.Retry(predicate=google_cloud_retry_predicate, deadline=600)
