@@ -172,7 +172,9 @@ class StorageProvider(StorageProviderBase):
     # futher stuff.
 
     def __post_init__(self):
-        self.client = storage.Client()
+        # TODO debug, remove
+        from google.auth.credentials import AnonymousCredentials
+        self.client = storage.Client(credentials=AnonymousCredentials())
 
     @classmethod
     def is_valid_query(cls, query: str) -> StorageQueryValidationResult:
