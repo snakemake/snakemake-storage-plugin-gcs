@@ -6,6 +6,8 @@ from snakemake_interface_storage_plugins.settings import StorageProviderSettings
 
 from snakemake_storage_plugin_gcs import StorageProvider, StorageProviderSettings
 
+os.environ["STORAGE_EMULATOR_ENV_VAR"] = "http://localhost:5050"
+
 
 class TestStorage(TestStorageBase):
     __test__ = True
@@ -26,10 +28,7 @@ class TestStorage(TestStorageBase):
         # instantiate StorageProviderSettings of this plugin as appropriate
         # Use local fake server as outlined here:
         # https://www.claritician.com/how-to-mock-google-cloud-storage-during-development
-        return StorageProviderSettings(
-            api_endpoint="http://localhost:5050",
-            api_key="test",
-        )
+        return StorageProviderSettings()
 
     def get_example_args(self) -> List[str]:
         return []
