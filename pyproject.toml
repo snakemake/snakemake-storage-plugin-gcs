@@ -7,7 +7,10 @@ authors = [
     "Johannes Koester <johannes.koester@uni-due.de>"
 ]
 readme = "README.md"
-homepage = "https://github.com/snakemake/snakemake-storage-plugin-gs"
+repository = "https://github.com/snakemake/snakemake-storage-plugin-gcs"
+documentation = "https://snakemake.github.io/snakemake-plugin-catalog/plugins/storage/gcs.html"
+license = "MIT"
+keywords = ["snakemake", "storage", "plugin", "google cloud storage"]
 
 [tool.poetry.dependencies]
 python = "^3.11"
