@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/snakemake/snakemake-storage-plugin-gcs/compare/v0.1.1...v0.1.2) (2023-12-20)
+
+
+### Bug Fixes
+
+* relax towards older crc32c ([#7](https://github.com/snakemake/snakemake-storage-plugin-gcs/issues/7)) ([b99dfa0](https://github.com/snakemake/snakemake-storage-plugin-gcs/commit/b99dfa07cc4b9bebbc2126d8f725bcd544c91dcf))
+
 ## [0.1.1](https://github.com/snakemake/snakemake-storage-plugin-gcs/compare/v0.1.0...v0.1.1) (2023-12-08)
 
 
