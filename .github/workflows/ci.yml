@@ -89,7 +89,8 @@ jobs:
           docker run -d -p 4443:4443 -v storage_data:/storage fsouza/fake-gcs-server -scheme http
 
       - name: Test fake GCS
-        run:
+        run: |
+          pip install google-crc32c==1.1.2
           poetry run python tests/test_fake_gcs.py
 
       - name: Run pytest
