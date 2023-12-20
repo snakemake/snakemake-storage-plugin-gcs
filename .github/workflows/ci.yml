@@ -90,6 +90,7 @@ jobs:
 
       - name: Test fake GCS
         run:
+          pip install google-crc32c==1.1.2
           poetry run python tests/test_fake_gcs.py
 
       - name: Run pytest
