@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/snakemake/snakemake-storage-plugin-gcs/compare/v0.1.2...v0.1.3) (2023-12-20)
+
+
+### Documentation
+
+* update readme ([7d23319](https://github.com/snakemake/snakemake-storage-plugin-gcs/commit/7d233198eb911f7fb3f73176f2304681272dd080))
+
 ## [0.1.2](https://github.com/snakemake/snakemake-storage-plugin-gcs/compare/v0.1.1...v0.1.2) (2023-12-20)
 
 
