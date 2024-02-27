@@ -193,7 +193,7 @@ class StorageProvider(StorageProviderBase):
             return StorageQueryValidationResult(
                 query=query,
                 valid=False,
-                reason="must start with gcs (gcs://...)",
+                reason="must start with gs (gs://...)",
             )
         return StorageQueryValidationResult(
             query=query,
