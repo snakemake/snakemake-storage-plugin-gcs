@@ -181,10 +181,8 @@ class StorageProvider(StorageProviderBase):
         Return whether the given query is valid for this storage provider.
         I'm not sure I follow this logic so I'm copying what S3 does.
         """
-        print(f"query: {query}")
         try:
             parsed = urlparse(query)
-            print(f"parsed: {parsed}")
         except Exception as e:
             return StorageQueryValidationResult(
                 query=query,
