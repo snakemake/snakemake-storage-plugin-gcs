@@ -189,7 +189,7 @@ class StorageProvider(StorageProviderBase):
                 valid=False,
                 reason=f"cannot be parsed as URL ({e})",
             )
-        if parsed.scheme != "gc":
+        if parsed.scheme != "gs":
             return StorageQueryValidationResult(
                 query=query,
                 valid=False,
