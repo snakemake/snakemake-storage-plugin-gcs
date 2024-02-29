@@ -182,7 +182,9 @@ class StorageProvider(StorageProviderBase):
         I'm not sure I follow this logic so I'm copying what S3 does.
         """
         try:
+            print(f"query: {query}")
             parsed = urlparse(query)
+            print(f"parsed: {parsed}")
         except Exception as e:
             return StorageQueryValidationResult(
                 query=query,
