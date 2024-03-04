@@ -16,7 +16,11 @@ from snakemake_interface_storage_plugins.storage_object import (
     StorageObjectGlob,
 )
 from snakemake_interface_storage_plugins.common import Operation
-from snakemake_interface_storage_plugins.io import IOCacheStorageInterface
+from snakemake_interface_storage_plugins.io import (
+    IOCacheStorageInterface,
+    get_constant_prefix,
+    Mtime,
+)
 from urllib.parse import urlparse
 import base64
 import os
@@ -422,7 +426,15 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         """Return a list of candidate matches in the storage for the query."""
         # This is used by glob_wildcards() to find matches for wildcards in the query.
         # The method has to return concretized queries without any remaining wildcards.
-        ...
+        prefix = get_constant_prefix(self.query)
+        if prefix.startswith('gcs://' + self.bucket.name):
+            prefix = prefix[6 + len(self.bucket.name) :]
+            prefix = prefix.lstrip('/')
+            return (f'gcs://{self.bucket.name}/{item.name}' for item in self.bucket.list_blobs(prefix=prefix))
+        else:
+            raise WorkflowError(
+                f"GCS storage object {self.query} must start with gcs://"
+            )
 
     # Helper functions and properties not part of standard interface
     # TODO check parent class and determine if any of these are already implemented

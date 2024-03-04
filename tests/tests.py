@@ -63,3 +63,9 @@ class TestStorage(TestStorageBase):
         finally:
             if not self.retrieve_only and stored and self.delete:
                 obj.remove()
+
+
+    def test_list_candidate_matches(self, tmp_path):
+        obj = self._get_obj(tmp_path, self.get_query(tmp_path))
+        print(self.get_query(tmp_path))
+
