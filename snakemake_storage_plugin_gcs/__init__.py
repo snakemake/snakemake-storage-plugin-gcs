@@ -427,10 +427,13 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         # This is used by glob_wildcards() to find matches for wildcards in the query.
         # The method has to return concretized queries without any remaining wildcards.
         prefix = get_constant_prefix(self.query)
-        if prefix.startswith('gcs://' + self.bucket.name):
+        if prefix.startswith("gcs://" + self.bucket.name):
             prefix = prefix[6 + len(self.bucket.name) :]
-            prefix = prefix.lstrip('/')
-            return (f'gcs://{self.bucket.name}/{item.name}' for item in self.bucket.list_blobs(prefix=prefix))
+            prefix = prefix.lstrip("/")
+            return (
+                f"gcs://{self.bucket.name}/{item.name}"
+                for item in self.bucket.list_blobs(prefix=prefix)
+            )
         else:
             raise WorkflowError(
                 f"GCS storage object {self.query} must start with gcs://"
