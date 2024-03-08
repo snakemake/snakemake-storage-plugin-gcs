@@ -16,12 +16,12 @@ class TestStorage(TestStorageBase):
     __test__ = True
 
     def get_query(self, tmp_path) -> str:
-        return "gcs://snakemake-test-bucket/test-file.txt"
+        return "gs://snakemake-test-bucket/test-file.txt"
 
     def get_query_not_existing(self, tmp_path) -> str:
         bucket = uuid.uuid4().hex
         key = uuid.uuid4().hex
-        return f"gcs://{bucket}/{key}"
+        return f"gs://{bucket}/{key}"
 
     def get_storage_provider_cls(self) -> Type[StorageProviderBase]:
         # Return the StorageProvider class of this plugin
