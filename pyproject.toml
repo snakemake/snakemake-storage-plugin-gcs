@@ -7,7 +7,7 @@ authors = [
     "Johannes Koester <johannes.koester@uni-due.de>"
 ]
 readme = "README.md"
-repository = "https://github.com/jairav/snakemake-storage-plugin-gcs"
+repository = "https://github.com/snakemake/snakemake-storage-plugin-gcs"
 documentation = "https://snakemake.github.io/snakemake-plugin-catalog/plugins/storage/gcs.html"
 license = "MIT"
 keywords = ["snakemake", "storage", "plugin", "google cloud storage"]
