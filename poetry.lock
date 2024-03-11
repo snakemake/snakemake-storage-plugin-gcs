@@ -448,13 +448,13 @@ test = ["black", "coverage[toml]", "ddt (>=1.1.1,!=1.4.3)", "mock", "mypy", "pre
 
 [[package]]
 name = "google-api-core"
-version = "2.14.0"
+version = "2.17.1"
 description = "Google API client core library"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-api-core-2.14.0.tar.gz", hash = "sha256:5368a4502b793d9bbf812a5912e13e4e69f9bd87f6efb508460c43f5bbd1ce41"},
-    {file = "google_api_core-2.14.0-py3-none-any.whl", hash = "sha256:de2fb50ed34d47ddbb2bd2dcf680ee8fead46279f4ed6b16de362aca23a18952"},
+    {file = "google-api-core-2.17.1.tar.gz", hash = "sha256:9df18a1f87ee0df0bc4eea2770ebc4228392d8cc4066655b320e2cfccb15db95"},
+    {file = "google_api_core-2.17.1-py3-none-any.whl", hash = "sha256:610c5b90092c360736baccf17bd3efbcb30dd380e7a6dc28a71059edb8bd0d8e"},
 ]
 
 [package.dependencies]
@@ -470,13 +470,13 @@ grpcio-gcp = ["grpcio-gcp (>=0.2.2,<1.0.dev0)"]
 
 [[package]]
 name = "google-auth"
-version = "2.25.1"
+version = "2.28.2"
 description = "Google Authentication Library"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-auth-2.25.1.tar.gz", hash = "sha256:d5d66b8f4f6e3273740d7bb73ddefa6c2d1ff691704bd407d51c6b5800e7c97b"},
-    {file = "google_auth-2.25.1-py2.py3-none-any.whl", hash = "sha256:dfd7b44935d498e106c08883b2dac0ad36d8aa10402a6412e9a1c9d74b4773f1"},
+    {file = "google-auth-2.28.2.tar.gz", hash = "sha256:80b8b4969aa9ed5938c7828308f20f035bc79f9d8fb8120bf9dc8db20b41ba30"},
+    {file = "google_auth-2.28.2-py2.py3-none-any.whl", hash = "sha256:9fd67bbcd40f16d9d42f950228e9cf02a2ded4ae49198b27432d0cded5a74c38"},
 ]
 
 [package.dependencies]
@@ -511,18 +511,18 @@ grpc = ["grpcio (>=1.38.0,<2.0dev)"]
 
 [[package]]
 name = "google-cloud-storage"
-version = "2.13.0"
+version = "2.15.0"
 description = "Google Cloud Storage API client library"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-cloud-storage-2.13.0.tar.gz", hash = "sha256:f62dc4c7b6cd4360d072e3deb28035fbdad491ac3d9b0b1815a12daea10f37c7"},
-    {file = "google_cloud_storage-2.13.0-py2.py3-none-any.whl", hash = "sha256:ab0bf2e1780a1b74cf17fccb13788070b729f50c252f0c94ada2aae0ca95437d"},
+    {file = "google-cloud-storage-2.15.0.tar.gz", hash = "sha256:7560a3c48a03d66c553dc55215d35883c680fe0ab44c23aa4832800ccc855c74"},
+    {file = "google_cloud_storage-2.15.0-py2.py3-none-any.whl", hash = "sha256:5d9237f88b648e1d724a0f20b5cde65996a37fe51d75d17660b1404097327dd2"},
 ]
 
 [package.dependencies]
-google-api-core = ">=1.31.5,<2.0.dev0 || >2.3.0,<3.0.0dev"
-google-auth = ">=2.23.3,<3.0dev"
+google-api-core = ">=2.15.0,<3.0.0dev"
+google-auth = ">=2.26.1,<3.0dev"
 google-cloud-core = ">=2.3.0,<3.0dev"
 google-crc32c = ">=1.0,<2.0dev"
 google-resumable-media = ">=2.6.0"
@@ -1679,4 +1679,4 @@ pyyaml = ">=6.0,<7.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "9d8b1ad556fa219df8b1511dea024a019db9e719b135f6827234fb3345b0120e"
+content-hash = "b062e166d44342774077c9ffa40264bfdfd4394435e1aac1cad575f743d672ab"
