@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/snakemake/snakemake-storage-plugin-gcs/compare/v0.1.3...v0.1.4) (2024-03-08)
+
+
+### Bug Fixes
+
+* repair GCS query string ([#26](https://github.com/snakemake/snakemake-storage-plugin-gcs/issues/26)) ([f61e8d0](https://github.com/snakemake/snakemake-storage-plugin-gcs/commit/f61e8d0e3b83d3b03ad2eb41ceb0c5902345ef48))
+
 ## [0.1.3](https://github.com/snakemake/snakemake-storage-plugin-gcs/compare/v0.1.2...v0.1.3) (2023-12-20)
 
 
