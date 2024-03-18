@@ -19,7 +19,6 @@ from snakemake_interface_storage_plugins.common import Operation
 from snakemake_interface_storage_plugins.io import (
     IOCacheStorageInterface,
     get_constant_prefix,
-    Mtime,
 )
 from urllib.parse import urlparse
 import base64
@@ -193,11 +192,11 @@ class StorageProvider(StorageProviderBase):
                 valid=False,
                 reason=f"cannot be parsed as URL ({e})",
             )
-        if parsed.scheme != "gcs":
+        if parsed.scheme != "gs":
             return StorageQueryValidationResult(
                 query=query,
                 valid=False,
-                reason="must start with gcs (gcs://...)",
+                reason="must start with gs (gs://...)",
             )
         return StorageQueryValidationResult(
             query=query,
@@ -211,7 +210,7 @@ class StorageProvider(StorageProviderBase):
         """
         return [
             ExampleQuery(
-                query="gcs://mybucket/myfile.txt",
+                query="gs://mybucket/myfile.txt",
                 type=QueryType.ANY,
                 description="A file in an google storage (GCS) bucket",
             )
@@ -427,13 +426,16 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         # This is used by glob_wildcards() to find matches for wildcards in the query.
         # The method has to return concretized queries without any remaining wildcards.
         prefix = get_constant_prefix(self.query)
-        if prefix.startswith('gcs://' + self.bucket.name):
-            prefix = prefix[6 + len(self.bucket.name) :]
-            prefix = prefix.lstrip('/')
-            return (f'gcs://{self.bucket.name}/{item.name}' for item in self.bucket.list_blobs(prefix=prefix))
+        if prefix.startswith("gs://" + self.bucket.name):
+            prefix = prefix[5 + len(self.bucket.name) :]
+            prefix = prefix.lstrip("/")
+            return (
+                f"gs://{self.bucket.name}/{item.name}"
+                for item in self.bucket.list_blobs(prefix=prefix)
+            )
         else:
             raise WorkflowError(
-                f"GCS storage object {self.query} must start with gcs://"
+                f"GCS storage object {self.query} must start with gs://"
             )
 
     # Helper functions and properties not part of standard interface
