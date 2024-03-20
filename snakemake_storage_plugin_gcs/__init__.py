@@ -426,9 +426,9 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         # This is used by glob_wildcards() to find matches for wildcards in the query.
         # The method has to return concretized queries without any remaining wildcards.
         prefix = get_constant_prefix(self.query)
-        if prefix.startswith("gs://" + self.bucket.name):
-            prefix = prefix[5 + len(self.bucket.name) :]
-            prefix = prefix.lstrip("/")
+        if prefix.startswith(f"gs://{self.bucket.name}"):
+            prefix = prefix[5 + len(self.bucket.name) :].lstrip("/")
+
             return (
                 f"gs://{self.bucket.name}/{item.name}"
                 for item in self.bucket.list_blobs(prefix=prefix)

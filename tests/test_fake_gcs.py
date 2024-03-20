@@ -1,8 +1,10 @@
+# %%
 import tempfile
 import os
 
 from google.auth.credentials import AnonymousCredentials
 from google.cloud import storage
+from google.api_core.exceptions import Conflict
 
 # This endpoint assumes that you are using the default port 4443 from the container.
 # If you are using a different port, please set the environment variable
@@ -36,7 +38,22 @@ for bucket in client.list_buckets():
 
 # Create a new Bucket
 bucket = client.bucket("snakemake-test-bucket")
-client.create_bucket(bucket)
-bucket.blob("test-file.txt").upload_from_string("Hello World!")
+try:
+    client.create_bucket(bucket)
+except Conflict:
+    # Bucket already created
+    pass
+
+file_data = {
+    "test-file.txt": "Hello World!",
+    "test-file_2.txt": "Testing candidates",
+    "test-file_3.txt": "What",
+}
+
+for file_name, contents in file_data.items():
+    blob = bucket.blob(file_name)
+    blob.upload_from_string(contents)
+
 
 assert not bucket.blob("foo").exists()
+print(list(bucket.list_blobs()))
