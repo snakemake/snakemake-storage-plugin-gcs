@@ -338,7 +338,11 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
             return blob.updated.timestamp()
 
         if self.is_directory():
-            return max(get_mtime(blob) for blob in self.directory_entries())
+            entries = list(self.directory_entries())
+            assert (
+                entries
+            ), f"bug: mtime called but directory does not seem to exist: {self.query}"
+            return max(get_mtime(blob) for blob in entries)
         else:
             return get_mtime(self.blob)
 
