@@ -189,11 +189,11 @@ class StorageProvider(StorageProviderBase):
                 valid=False,
                 reason=f"cannot be parsed as URL ({e})",
             )
-        if parsed.scheme != "gs":
+        if parsed.scheme != "gcs":
             return StorageQueryValidationResult(
                 query=query,
                 valid=False,
-                reason="must start with gs (gs://...)",
+                reason="must start with gcs scheme (gcs://...)",
             )
         return StorageQueryValidationResult(
             query=query,
@@ -207,7 +207,7 @@ class StorageProvider(StorageProviderBase):
         """
         return [
             ExampleQuery(
-                query="gs://mybucket/myfile.txt",
+                query="gcs://mybucket/myfile.txt",
                 type=QueryType.ANY,
                 description="A file in an google storage (GCS) bucket",
             )
@@ -338,7 +338,11 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
             return blob.updated.timestamp()
 
         if self.is_directory():
-            return max(get_mtime(blob) for blob in self.directory_entries())
+            entries = list(self.directory_entries())
+            assert (
+                entries
+            ), f"bug: mtime called but directory does not seem to exist: {self.query}"
+            return max(get_mtime(blob) for blob in entries)
         else:
             return get_mtime(self.blob)
 
