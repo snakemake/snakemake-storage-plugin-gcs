@@ -17,6 +17,8 @@ from snakemake_interface_storage_plugins.storage_object import (
 )
 from snakemake_interface_storage_plugins.common import Operation
 from snakemake_interface_storage_plugins.io import IOCacheStorageInterface
+from snakemake_interface_common.logging import get_logger
+
 from urllib.parse import urlparse
 import base64
 import os
@@ -262,6 +264,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         self.key = parsed.path.lstrip("/")
         self._local_suffix = self._local_suffix_from_key(self.key)
         self._is_dir = None
+        self.logger = get_logger()
 
     def cleanup(self):
         # Close any open connections, unmount stuff, etc.
