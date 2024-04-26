@@ -72,7 +72,7 @@ class TestStorage(TestStorageBase):
                 obj.remove()
 
     def test_list_candidate_matches(self, tmp_path):
-        obj = self._get_obj(tmp_path, "gs://snakemake-test-bucket/")
+        obj = self._get_obj(tmp_path, "gcs://snakemake-test-bucket/")
         candidates = list(obj.list_candidate_matches())
         # I think the previous test deletes the first test_object
         expected_matches = [
