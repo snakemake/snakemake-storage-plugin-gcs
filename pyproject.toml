@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "snakemake-storage-plugin-gcs"
-version = "0.1.4"
+version = "1.0.0"
 description = "A Snakemake storage plugin for Google Cloud Storage"
 authors = [
     "Vanessa Sochat <sochat1@llnl.gov>",
