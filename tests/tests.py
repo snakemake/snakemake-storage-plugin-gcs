@@ -1,4 +1,4 @@
-import os
+import os, shutil
 from typing import List, Optional, Type
 import uuid
 from snakemake_interface_storage_plugins.tests import TestStorageBase
@@ -64,3 +64,49 @@ class TestStorage(TestStorageBase):
         finally:
             if not self.retrieve_only and stored and self.delete:
                 obj.remove()
+
+            
+    def test_storage_nonempty_directory(self, tmp_path):
+        # make a directory
+        tmpdir = "test_nonemptydir"
+
+        # store the directory
+        obj = self._get_obj(tmp_path, f"gcs://snakemake-test-bucket/{tmpdir}")
+        
+        stored = False
+        try:
+            if not self.retrieve_only:
+                obj.local_path().mkdir(parents=True, exist_ok=True)
+                
+                assert obj.is_directory()
+                
+                print(obj.local_path())
+                print("Writing a file in the directory")
+                # write a file in the directory
+                with open(obj.local_path() / "testfile.txt", "w") as f:
+                    f.write("test")
+                    f.flush()
+                
+                assert obj.bucket.exists()
+                assert obj.local_path().exists() and obj.local_path().is_dir()
+                print("Storing the directory")
+                
+
+                obj.store_object()
+                stored = True
+
+            assert obj.exists()
+            print(obj.mtime())
+            print(obj.size())
+            
+            file = obj.local_path() / "testfile.txt"
+            assert file.exists()
+            print(file.read_text())
+
+            
+            
+        finally:
+            if not self.retrieve_only and stored and self.delete:
+                obj.remove()
+                shutil.rmtree(obj.local_path())
+            
