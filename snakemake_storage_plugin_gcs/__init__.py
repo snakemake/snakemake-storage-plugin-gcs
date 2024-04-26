@@ -410,8 +410,8 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         """
         if not self.bucket.exists():
             self.client.create_bucket(self.bucket)
-    
-    def upload_directory(self, local_directory_path : Path):
+
+    def upload_directory(self, local_directory_path: Path):
         """
         Upload a directory to the storage.
         """
@@ -423,23 +423,24 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
             self.blob.upload_from_string(
                 "", content_type="application/x-www-form-urlencoded;charset=UTF-8"
             )
-        
+
         for root, _, files in os.walk(local_directory_path):
             for filename in files:
                 relative_filepath = os.path.join(root, filename)
-                local_prefix = self.provider.local_prefix.as_posix() 
-                
+                local_prefix = self.provider.local_prefix.as_posix()
+
                 # remove the prefix ("".snakemake/storage/gcs/{bucket_name}/)
                 # this gives us the path to the file relative to the bucket
-                bucket_file_path = relative_filepath\
-                    .removeprefix(local_prefix)\
-                    .lstrip("/")\
-                    .removeprefix(self.bucket_name)\
-                    .lstrip("/")        
-                
-                blob = self.bucket.blob(bucket_file_path)          
-                blob.upload_from_filename(relative_filepath)      
-    
+                bucket_file_path = (
+                    relative_filepath.removeprefix(local_prefix)
+                    .lstrip("/")
+                    .removeprefix(self.bucket_name)
+                    .lstrip("/")
+                )
+
+                blob = self.bucket.blob(bucket_file_path)
+                blob.upload_from_filename(relative_filepath)
+
     @retry.Retry(predicate=google_cloud_retry_predicate)
     def remove(self):
         """
