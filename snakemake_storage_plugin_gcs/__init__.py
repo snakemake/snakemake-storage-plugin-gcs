@@ -189,11 +189,11 @@ class StorageProvider(StorageProviderBase):
                 valid=False,
                 reason=f"cannot be parsed as URL ({e})",
             )
-        if parsed.scheme != "gs":
+        if parsed.scheme != "gcs":
             return StorageQueryValidationResult(
                 query=query,
                 valid=False,
-                reason="must start with gs (gs://...)",
+                reason="must start with gcs scheme (gcs://...)",
             )
         return StorageQueryValidationResult(
             query=query,
@@ -207,7 +207,7 @@ class StorageProvider(StorageProviderBase):
         """
         return [
             ExampleQuery(
-                query="gs://mybucket/myfile.txt",
+                query="gcs://mybucket/myfile.txt",
                 type=QueryType.ANY,
                 description="A file in an google storage (GCS) bucket",
             )
