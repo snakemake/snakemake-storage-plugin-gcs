@@ -76,7 +76,7 @@ class TestStorage(TestStorageBase):
         candidates = list(obj.list_candidate_matches())
         # I think the previous test deletes the first test_object
         expected_matches = [
-            "gs://snakemake-test-bucket/test-file_2.txt",
-            "gs://snakemake-test-bucket/test-file_3.txt",
+            "gcs://snakemake-test-bucket/test-file_2.txt",
+            "gcs://snakemake-test-bucket/test-file_3.txt",
         ]
         assert candidates == expected_matches
