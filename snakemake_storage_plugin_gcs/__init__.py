@@ -446,8 +446,15 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         """
         Remove the object from the storage.
         """
-        # This was a total guess lol
-        self.blob.delete()
+        if self.is_directory():
+            prefix = self.key
+            if not prefix.endswith("/"):
+                prefix += "/"
+            blobs = self.client.list_blobs(self.bucket_name, prefix=prefix)
+            for blob in blobs:
+                blob.delete()
+        else:
+            self.blob.delete()
 
     # The following to methods are only required if the class inherits from
     # StorageObjectGlob.
