@@ -434,7 +434,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
             prefix = prefix[5 + len(self.bucket.name) :].lstrip("/")
 
             return (
-                f"gs://{self.bucket.name}/{item.name}"
+                f"gcs://{self.bucket.name}/{item.name}"
                 for item in self.bucket.list_blobs(prefix=prefix)
             )
         else:
