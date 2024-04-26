@@ -14,6 +14,7 @@ os.environ["STORAGE_EMULATOR_HOST"] = "http://localhost:4443"
 
 class TestStorage(TestStorageBase):
     __test__ = True
+    files_only = False
 
     def get_query(self, tmp_path) -> str:
         return "gs://snakemake-test-bucket/test-file.txt"
