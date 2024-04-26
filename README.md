@@ -1,7 +1,7 @@
 # Snakemake storage plugin: gcs
 
 A snakemake storage plugin for Google Cloud Storage.
-For documentation and usage instructions, see the [Snakemake plugin catalog](https://snakemake.github.io/snakemake-plugin-catalog/plugins/storage/s3.html).
+For documentation and usage instructions, see the [Snakemake plugin catalog](https://snakemake.github.io/snakemake-plugin-catalog/plugins/storage/gcs.html).
 
 
 ## License
