@@ -1,0 +1,1 @@
+A Snakemake storage plugin that reads and writes from [Google cloud storage (GCS)](https://cloud.google.com/storage).

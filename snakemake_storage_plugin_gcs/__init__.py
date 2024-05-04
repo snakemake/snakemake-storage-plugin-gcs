@@ -193,11 +193,11 @@ class StorageProvider(StorageProviderBase):
                 valid=False,
                 reason=f"cannot be parsed as URL ({e})",
             )
-        if parsed.scheme != "gs":
+        if parsed.scheme != "gcs":
             return StorageQueryValidationResult(
                 query=query,
                 valid=False,
-                reason="must start with gs (gs://...)",
+                reason="must start with gcs scheme (gcs://...)",
             )
         return StorageQueryValidationResult(
             query=query,
@@ -211,7 +211,7 @@ class StorageProvider(StorageProviderBase):
         """
         return [
             ExampleQuery(
-                query="gs://mybucket/myfile.txt",
+                query="gcs://mybucket/myfile.txt",
                 type=QueryType.ANY,
                 description="A file in an google storage (GCS) bucket",
             )
@@ -341,7 +341,11 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
             return blob.updated.timestamp()
 
         if self.is_directory():
-            return max(get_mtime(blob) for blob in self.directory_entries())
+            entries = list(self.directory_entries())
+            assert (
+                entries
+            ), f"bug: mtime called but directory does not seem to exist: {self.query}"
+            return max(get_mtime(blob) for blob in entries)
         else:
             return get_mtime(self.blob)
 
@@ -425,7 +429,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         """Return a list of candidate matches in the storage for the query."""
         # This is used by glob_wildcards() to find matches for wildcards in the query.
         prefix = get_constant_prefix(self.query)
-        if prefix.startswith(f"gs://{self.bucket.name}"):
+        if prefix.startswith(f"gcs://{self.bucket.name}"):
             prefix = prefix[6 + len(self.bucket.name) :].lstrip("/")
 
             return (
@@ -434,7 +438,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
             )
         else:
             raise WorkflowError(
-                f"GCS storage object {self.query} must start with gcs://"
+                f"GCS storage object {self.query} must start with gs://"
             )
 
     # Helper functions and properties not part of standard interface
