@@ -438,7 +438,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
             )
         else:
             raise WorkflowError(
-                f"GCS storage object {self.query} must start with gs://"
+                f"GCS storage object {self.query} must start with gcs://"
             )
 
     # Helper functions and properties not part of standard interface
