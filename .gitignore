@@ -1,0 +1,17 @@
+# coverage
+
+.coverage
+
+# .pytest_cache
+
+pytest_cache
+
+
+# __pycache__ and any .pyc files
+
+__pycache__
+*.pyc
+
+**/__pycache__/
+**/*.pyc
+
