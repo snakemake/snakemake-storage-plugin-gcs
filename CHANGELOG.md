@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/snakemake/snakemake-storage-plugin-gcs/compare/v1.1.0...v1.1.1) (2024-08-19)
+
+
+### Bug Fixes
+
+* allow both gs:// and gcs:// as query scheme; internally normalize to gs:// for compatibility with google cloud tools ([#52](https://github.com/snakemake/snakemake-storage-plugin-gcs/issues/52)) ([099e87f](https://github.com/snakemake/snakemake-storage-plugin-gcs/commit/099e87fcf47e59b5e911f72f50ca3c94aed7444f))
+
 ## [1.1.0](https://github.com/snakemake/snakemake-storage-plugin-gcs/compare/v1.0.0...v1.1.0) (2024-08-19)
 
 
