@@ -40,40 +40,7 @@ class TestStorage(TestStorageBase):
     def get_example_args(self) -> List[str]:
         return []
 
-    def test_storage_dbg(self, tmp_path):
-        assert not (
-            self.store_only and self.retrieve_only
-        ), "store_only and retrieve_only may not be True at the same time"
-
-        obj = self._get_obj(tmp_path, self.get_query(tmp_path))
-
-        stored = False
-        try:
-            if not self.retrieve_only:
-                print("Creating a local file")
-                obj.local_path().parent.mkdir(parents=True, exist_ok=True)
-                with open(obj.local_path(), "w") as f:
-                    f.write("test")
-                    f.flush()
-                print("Storing the object")
-                obj.store_object()
-                stored = True
-                print("Removing the local file")
-                obj.local_path().unlink()
-
-            assert obj.exists()
-            print(obj.mtime())
-            print(obj.size())
-
-            if not self.store_only:
-                obj.local_path().parent.mkdir(parents=True, exist_ok=True)
-                obj.retrieve_object()
-
-        finally:
-            if not self.retrieve_only and stored and self.delete:
-                print("Removing the object")
-                obj.remove()
-
+    # TODO remove if this is now in the base class
     def test_storage_nonempty_directory(self, tmp_path):
         # make a directory
         tmpdir = "test_nonemptydir"

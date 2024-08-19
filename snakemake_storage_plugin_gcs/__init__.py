@@ -445,7 +445,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
                 blob.upload_from_filename(relative_filepath)
 
     @retry.Retry(predicate=google_cloud_retry_predicate)
-    def remove(self):
+    def remove(self) -> None:
         """
         Remove the object from the storage.
         """
