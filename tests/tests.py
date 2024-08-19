@@ -2,11 +2,15 @@ import os
 import shutil
 from typing import List, Optional, Type
 import uuid
+
 from snakemake_interface_storage_plugins.tests import TestStorageBase
 from snakemake_interface_storage_plugins.storage_provider import StorageProviderBase
 from snakemake_interface_storage_plugins.settings import StorageProviderSettingsBase
 
-from snakemake_storage_plugin_gcs import StorageProvider, StorageProviderSettings
+from snakemake_storage_plugin_gcs import (
+    StorageProvider,
+    StorageProviderSettings,
+)
 
 # Use local fake server as outlined here:
 # https://github.com/fsouza/fake-gcs-server
@@ -110,3 +114,13 @@ class TestStorage(TestStorageBase):
             if not self.retrieve_only and stored and self.delete:
                 obj.remove()
                 shutil.rmtree(obj.local_path())
+
+    def test_list_candidate_matches(self, tmp_path):
+        obj = self._get_obj(tmp_path, "gcs://snakemake-test-bucket/")
+        candidates = list(obj.list_candidate_matches())
+        # I think the previous test deletes the first test_object
+        expected_matches = [
+            "gcs://snakemake-test-bucket/test-file_2.txt",
+            "gcs://snakemake-test-bucket/test-file_3.txt",
+        ]
+        assert candidates == expected_matches
