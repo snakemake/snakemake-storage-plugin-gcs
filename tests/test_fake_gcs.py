@@ -38,6 +38,7 @@ for bucket in client.list_buckets():
 
 # Create a new Bucket
 bucket = client.bucket("snakemake-test-bucket")
+
 try:
     client.create_bucket(bucket)
 except Conflict:
@@ -53,7 +54,6 @@ file_data = {
 for file_name, contents in file_data.items():
     blob = bucket.blob(file_name)
     blob.upload_from_string(contents)
-
 
 assert not bucket.blob("foo").exists()
 print(list(bucket.list_blobs()))

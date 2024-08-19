@@ -21,10 +21,12 @@ from snakemake_interface_storage_plugins.io import (
     get_constant_prefix,
     Mtime,
 )
+from snakemake_interface_common.logging import get_logger
+
 from urllib.parse import urlparse
 import base64
 import os
-
+from pathlib import Path
 import google.cloud.exceptions
 from google.cloud import storage
 from google.api_core import retry
@@ -266,6 +268,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         self.key = parsed.path.lstrip("/")
         self._local_suffix = self._local_suffix_from_key(self.key)
         self._is_dir = None
+        self.logger = get_logger()
 
     def cleanup(self):
         # Close any open connections, unmount stuff, etc.
@@ -288,8 +291,8 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
          - cache.size
         """
         if self.get_inventory_parent() in cache.exists_in_storage:
-             # bucket has been inventorized before, stop here
-             return
+            # bucket has been inventorized before, stop here
+            return
 
         # check if bucket exists
         if not self.bucket.exists():
@@ -381,29 +384,20 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
 
         TODO: note from vsoch - I'm not sure I read this function name right,
         but I didn't find an equivalent "upload" function so I thought this might
-        be it. The original function comment is below. 
+        be it. The original function comment is below.
         """
         # Ensure that the object is stored at the location specified by
         # self.local_path().
         try:
-            if not self.bucket.exists():
-                self.client.create_bucket(self.bucket)
+            self.ensure_bucket_exists()
 
             # Distinguish between single file, and folder
-            f = self.local_path()
-            if os.path.isdir(f):
-                # Ensure the "directory" exists
-                self.blob.upload_from_string(
-                    "", content_type="application/x-www-form-urlencoded;charset=UTF-8"
-                )
-                for root, _, files in os.walk(f):
-                    for filename in files:
-                        filename = os.path.join(root, filename)
-                        bucket_path = filename.lstrip(self.bucket.name).lstrip("/")
-                        blob = self.bucket.blob(bucket_path)
-                        blob.upload_from_filename(filename)
+            local_object = self.local_path()
+            if os.path.isdir(local_object):
+                self.upload_directory(local_directory_path=local_object)
             else:
-                self.blob.upload_from_filename(f)
+                self.blob.upload_from_filename(local_object)
+
         except google.cloud.exceptions.Forbidden as e:
             raise WorkflowError(
                 e,
@@ -413,13 +407,57 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
                 "--scopes (see Snakemake documentation).",
             )
 
+    def ensure_bucket_exists(self) -> None:
+        """
+        Check that the bucket exists, if not create it.
+        """
+        if not self.bucket.exists():
+            self.client.create_bucket(self.bucket)
+
+    def upload_directory(self, local_directory_path: Path):
+        """
+        Upload a directory to the storage.
+        """
+        self.ensure_bucket_exists()
+
+        # if the local directory is empty, we need to create a blob
+        # with no content to represent the directory
+        if not os.listdir(local_directory_path):
+            self.blob.upload_from_string(
+                "", content_type="application/x-www-form-urlencoded;charset=UTF-8"
+            )
+
+        for root, _, files in os.walk(local_directory_path):
+            for filename in files:
+                relative_filepath = os.path.join(root, filename)
+                local_prefix = self.provider.local_prefix.as_posix()
+
+                # remove the prefix ("".snakemake/storage/gcs/{bucket_name}/)
+                # this gives us the path to the file relative to the bucket
+                bucket_file_path = (
+                    relative_filepath.removeprefix(local_prefix)
+                    .lstrip("/")
+                    .removeprefix(self.bucket_name)
+                    .lstrip("/")
+                )
+
+                blob = self.bucket.blob(bucket_file_path)
+                blob.upload_from_filename(relative_filepath)
+
     @retry.Retry(predicate=google_cloud_retry_predicate)
-    def remove(self):
+    def remove(self) -> None:
         """
         Remove the object from the storage.
         """
-        # This was a total guess lol
-        self.blob.delete()
+        if self.is_directory():
+            prefix = self.key
+            if not prefix.endswith("/"):
+                prefix += "/"
+            blobs = self.client.list_blobs(self.bucket_name, prefix=prefix)
+            for blob in blobs:
+                blob.delete()
+        else:
+            self.blob.delete()
 
     # The following to methods are only required if the class inherits from
     # StorageObjectGlob.
