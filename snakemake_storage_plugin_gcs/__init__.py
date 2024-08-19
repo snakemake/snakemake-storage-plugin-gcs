@@ -16,7 +16,11 @@ from snakemake_interface_storage_plugins.storage_object import (
     StorageObjectGlob,
 )
 from snakemake_interface_storage_plugins.common import Operation
-from snakemake_interface_storage_plugins.io import IOCacheStorageInterface
+from snakemake_interface_storage_plugins.io import (
+    IOCacheStorageInterface,
+    get_constant_prefix,
+    Mtime,
+)
 from urllib.parse import urlparse
 import base64
 import os
@@ -283,23 +287,22 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
          - cache.mtime
          - cache.size
         """
-        # TODO enable again later
-        # if self.get_inventory_parent() in cache.exists_in_storage:
-        #     # bucket has been inventorized before, stop here
-        #     return
+        if self.get_inventory_parent() in cache.exists_in_storage:
+             # bucket has been inventorized before, stop here
+             return
 
-        # # check if bucket exists
-        # if not self.bucket_exists():
-        #     cache.exists_in_storage[self.cache_key()] = False
-        #     cache.exists_in_storage[self.get_inventory_parent()] = False
-        # else:
-        #     subfolder = os.path.dirname(self.blob.name)
-        #     for blob in self.client.list_blobs(self.bucket_name, prefix=subfolder):
-        #         # By way of being listed, it exists. mtime is a datetime object
-        #         key = self.cache_key(self._local_suffix_from_key(blob.name))
-        #         cache.exists_in_storage[key] = True
-        #         cache.mtime[key] = Mtime(remote=blob.updated.timestamp())
-        #         cache.size[key] = blob.size
+        # check if bucket exists
+        if not self.bucket.exists():
+            cache.exists_in_storage[self.cache_key()] = False
+            cache.exists_in_storage[self.get_inventory_parent()] = False
+        else:
+            subfolder = os.path.dirname(self.blob.name)
+            for blob in self.client.list_blobs(self.bucket_name, prefix=subfolder):
+                # By way of being listed, it exists. mtime is a datetime object
+                key = self.cache_key(self._local_suffix_from_key(blob.name))
+                cache.exists_in_storage[key] = True
+                cache.mtime[key] = Mtime(storage=blob.updated.timestamp())
+                cache.size[key] = blob.size
         #         # TODO cache "is directory" information
 
     def get_inventory_parent(self) -> Optional[str]:
@@ -378,7 +381,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
 
         TODO: note from vsoch - I'm not sure I read this function name right,
         but I didn't find an equivalent "upload" function so I thought this might
-        be it. The original function comment is below.
+        be it. The original function comment is below. 
         """
         # Ensure that the object is stored at the location specified by
         # self.local_path().
@@ -425,8 +428,18 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
     def list_candidate_matches(self) -> Iterable[str]:
         """Return a list of candidate matches in the storage for the query."""
         # This is used by glob_wildcards() to find matches for wildcards in the query.
-        # The method has to return concretized queries without any remaining wildcards.
-        ...
+        prefix = get_constant_prefix(self.query)
+        if prefix.startswith(f"gcs://{self.bucket.name}"):
+            prefix = prefix[6 + len(self.bucket.name) :].lstrip("/")
+
+            return (
+                f"gcs://{self.bucket.name}/{item.name}"
+                for item in self.bucket.list_blobs(prefix=prefix)
+            )
+        else:
+            raise WorkflowError(
+                f"GCS storage object {self.query} must start with gcs://"
+            )
 
     # Helper functions and properties not part of standard interface
     # TODO check parent class and determine if any of these are already implemented
