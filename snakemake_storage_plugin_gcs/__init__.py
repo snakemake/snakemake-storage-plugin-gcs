@@ -226,7 +226,7 @@ class StorageProvider(StorageProviderBase):
                 type=QueryType.ANY,
                 description="A file in an google storage (GCS) bucket (alternative "
                 "query scheme)",
-            )
+            ),
         ]
 
     def use_rate_limiter(self) -> bool:
