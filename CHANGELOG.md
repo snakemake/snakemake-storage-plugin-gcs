@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/snakemake/snakemake-storage-plugin-gcs/compare/v1.0.0...v1.1.0) (2024-08-19)
+
+
+### Features
+
+* list storage candidates ([#30](https://github.com/snakemake/snakemake-storage-plugin-gcs/issues/30)) ([c7ba28e](https://github.com/snakemake/snakemake-storage-plugin-gcs/commit/c7ba28ec3a9cd1b6d2c39806ab785df57ec18f6d))
+
+
+### Bug Fixes
+
+* fixing the directory() issue due to uploading the local_prefix instead of GCS prefix.  ([#41](https://github.com/snakemake/snakemake-storage-plugin-gcs/issues/41)) ([27c80dc](https://github.com/snakemake/snakemake-storage-plugin-gcs/commit/27c80dce7ad9349e8ae8788984b1525c2478d575))
+
 ## [1.0.0](https://github.com/snakemake/snakemake-storage-plugin-gcs/compare/v0.1.4...v1.0.0) (2024-04-26)
 
 
