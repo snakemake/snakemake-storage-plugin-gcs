@@ -220,6 +220,12 @@ class StorageProvider(StorageProviderBase):
                 query="gs://mybucket/myfile.txt",
                 type=QueryType.ANY,
                 description="A file in an google storage (GCS) bucket",
+            ),
+            ExampleQuery(
+                query="gcs://mybucket/myfile.txt",
+                type=QueryType.ANY,
+                description="A file in an google storage (GCS) bucket (alternative "
+                "query scheme)",
             )
         ]
 
