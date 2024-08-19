@@ -291,8 +291,8 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
          - cache.size
         """
         if self.get_inventory_parent() in cache.exists_in_storage:
-             # bucket has been inventorized before, stop here
-             return
+            # bucket has been inventorized before, stop here
+            return
 
         # check if bucket exists
         if not self.bucket.exists():
@@ -384,7 +384,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
 
         TODO: note from vsoch - I'm not sure I read this function name right,
         but I didn't find an equivalent "upload" function so I thought this might
-        be it. The original function comment is below. 
+        be it. The original function comment is below.
         """
         # Ensure that the object is stored at the location specified by
         # self.local_path().
