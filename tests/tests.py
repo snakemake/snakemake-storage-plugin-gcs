@@ -22,12 +22,12 @@ class TestStorage(TestStorageBase):
     files_only = True  #
 
     def get_query(self, tmp_path) -> str:
-        return "gcs://snakemake-test-bucket/test-file.txt"
+        return "gs://snakemake-test-bucket/test-file.txt"
 
     def get_query_not_existing(self, tmp_path) -> str:
         bucket = uuid.uuid4().hex
         key = uuid.uuid4().hex
-        return f"gcs://{bucket}/{key}"
+        return f"gs://{bucket}/{key}"
 
     def get_storage_provider_cls(self) -> Type[StorageProviderBase]:
         # Return the StorageProvider class of this plugin
@@ -46,7 +46,7 @@ class TestStorage(TestStorageBase):
         tmpdir = "test_nonemptydir"
 
         # store the directory
-        obj = self._get_obj(tmp_path, f"gcs://snakemake-test-bucket/{tmpdir}")
+        obj = self._get_obj(tmp_path, f"gs://snakemake-test-bucket/{tmpdir}")
 
         stored = False
         try:
@@ -83,11 +83,11 @@ class TestStorage(TestStorageBase):
                 shutil.rmtree(obj.local_path())
 
     def test_list_candidate_matches(self, tmp_path):
-        obj = self._get_obj(tmp_path, "gcs://snakemake-test-bucket/")
+        obj = self._get_obj(tmp_path, "gs://snakemake-test-bucket/")
         candidates = list(obj.list_candidate_matches())
         # I think the previous test deletes the first test_object
         expected_matches = [
-            "gcs://snakemake-test-bucket/test-file_2.txt",
-            "gcs://snakemake-test-bucket/test-file_3.txt",
+            "gs://snakemake-test-bucket/test-file_2.txt",
+            "gs://snakemake-test-bucket/test-file_3.txt",
         ]
         assert candidates == expected_matches

@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+import re
 from typing import Any, Iterable, List, Optional
 from snakemake_interface_common.utils import lazy_property
 from snakemake_interface_storage_plugins.settings import StorageProviderSettingsBase
@@ -31,6 +32,8 @@ import google.cloud.exceptions
 from google.cloud import storage
 from google.api_core import retry
 from google_crc32c import Checksum
+
+_RE_GCS_SCHEME = re.compile(r"^gcs://")
 
 
 # Optional:
@@ -195,11 +198,12 @@ class StorageProvider(StorageProviderBase):
                 valid=False,
                 reason=f"cannot be parsed as URL ({e})",
             )
-        if parsed.scheme != "gcs":
+
+        if parsed.scheme != "gcs" and parsed.scheme != "gs":
             return StorageQueryValidationResult(
                 query=query,
                 valid=False,
-                reason="must start with gcs scheme (gcs://...)",
+                reason="must start with gcs or gs scheme (gs://... or gcs://...)",
             )
         return StorageQueryValidationResult(
             query=query,
@@ -213,10 +217,16 @@ class StorageProvider(StorageProviderBase):
         """
         return [
             ExampleQuery(
-                query="gcs://mybucket/myfile.txt",
+                query="gs://mybucket/myfile.txt",
                 type=QueryType.ANY,
                 description="A file in an google storage (GCS) bucket",
-            )
+            ),
+            ExampleQuery(
+                query="gcs://mybucket/myfile.txt",
+                type=QueryType.ANY,
+                description="A file in an google storage (GCS) bucket (alternative "
+                "query scheme)",
+            ),
         ]
 
     def use_rate_limiter(self) -> bool:
@@ -247,6 +257,10 @@ class StorageProvider(StorageProviderBase):
         bucket_name = parsed.netloc
         b = self.client.bucket(bucket_name, user_project=self.settings.project)
         return [k.name for k in b.list_blobs()]
+
+    def postprocess_query(self, query: str) -> str:
+        # normalize gcs:// to gs:// (the official scheme for google storage tools)
+        return _RE_GCS_SCHEME.sub("gs://", query)
 
 
 # Required:
@@ -467,16 +481,16 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         """Return a list of candidate matches in the storage for the query."""
         # This is used by glob_wildcards() to find matches for wildcards in the query.
         prefix = get_constant_prefix(self.query)
-        if prefix.startswith(f"gcs://{self.bucket.name}"):
+        if prefix.startswith(f"gs://{self.bucket.name}"):
             prefix = prefix[6 + len(self.bucket.name) :].lstrip("/")
 
             return (
-                f"gcs://{self.bucket.name}/{item.name}"
+                f"gs://{self.bucket.name}/{item.name}"
                 for item in self.bucket.list_blobs(prefix=prefix)
             )
         else:
             raise WorkflowError(
-                f"GCS storage object {self.query} must start with gcs://"
+                f"GCS storage object {self.query} must start with gs:// or gcs://"
             )
 
     # Helper functions and properties not part of standard interface
