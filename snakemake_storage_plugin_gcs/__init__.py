@@ -525,7 +525,8 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         self.local_path().mkdir(exist_ok=True)
 
         for blob in self.directory_entries():
-            local_name = f"{blob.bucket.name}/{blob.name}"
+            # local_name = f"{blob.bucket.name}/{blob.name}"
+            local_name = self.provider.local_prefix  / self.bucket.name / blob.name
 
             # Don't try to create "directory blob"
             if os.path.exists(local_name) and os.path.isdir(local_name):
