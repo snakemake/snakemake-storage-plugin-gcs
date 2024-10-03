@@ -533,7 +533,9 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
             # The results list is either `None` or an exception for each blob in
             # the input list, in order.
             if isinstance(result, Exception):
-                self.logger.error("Failed to download {} due to exception: {}".format(name, result))
+                self.logger.error(
+                    "Failed to download {} due to exception: {}".format(name, result)
+                )
 
     @lazy_property
     def bucket(self):
