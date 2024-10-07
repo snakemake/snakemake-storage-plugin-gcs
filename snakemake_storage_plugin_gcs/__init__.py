@@ -30,6 +30,7 @@ import os
 from pathlib import Path
 import google.cloud.exceptions
 from google.cloud import storage
+from google.cloud.storage import transfer_manager
 from google.api_core import retry
 from google_crc32c import Checksum
 
@@ -521,17 +522,20 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         """
         Handle download of a storage folder (assists retrieve_blob)
         """
-        # Create the directory locally
-        self.local_path().mkdir(exist_ok=True)
-
-        for blob in self.directory_entries():
-            local_name = f"{blob.bucket.name}/{blob.name}"
-
-            # Don't try to create "directory blob"
-            if os.path.exists(local_name) and os.path.isdir(local_name):
-                continue
-
-            download_blob(blob, local_name)
+        blob_names = [blob.name for blob in self.directory_entries()]
+        results = transfer_manager.download_many_to_path(
+            bucket=self.bucket,
+            blob_names=blob_names,
+            destination_directory=self.provider.local_prefix / self.bucket.name,
+            create_directories=True,
+        )
+        for name, result in zip(blob_names, results):
+            # The results list is either `None` or an exception for each blob in
+            # the input list, in order.
+            if isinstance(result, Exception):
+                self.logger.error(
+                    "Failed to download {} due to exception: {}".format(name, result)
+                )
 
     @lazy_property
     def bucket(self):
