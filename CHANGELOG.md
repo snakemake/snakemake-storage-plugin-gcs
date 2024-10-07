@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/snakemake/snakemake-storage-plugin-gcs/compare/v1.1.1...v1.1.2) (2024-10-07)
+
+
+### Bug Fixes
+
+* download_directory local path incorrectly stored ([#54](https://github.com/snakemake/snakemake-storage-plugin-gcs/issues/54)) ([bc3d739](https://github.com/snakemake/snakemake-storage-plugin-gcs/commit/bc3d73972bae95bf120cb2b28c22a03e6f1e887a))
+
 ## [1.1.1](https://github.com/snakemake/snakemake-storage-plugin-gcs/compare/v1.1.0...v1.1.1) (2024-08-19)
 
 
