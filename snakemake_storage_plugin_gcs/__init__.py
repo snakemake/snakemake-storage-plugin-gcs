@@ -51,15 +51,6 @@ class StorageProviderSettings(StorageProviderSettingsBase):
             "required": True,
         },
     )
-    keep_local: Optional[bool] = field(
-        default=False,
-        metadata={
-            "help": "keep local copy of storage object(s)",
-            "env_var": False,
-            "required": False,
-            "type": bool,
-        },
-    )
     stay_on_remote: Optional[bool] = field(
         default=False,
         metadata={
