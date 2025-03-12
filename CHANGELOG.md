@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/snakemake/snakemake-storage-plugin-gcs/compare/v1.1.2...v1.1.3) (2025-03-12)
+
+
+### Bug Fixes
+
+* Remove the redundant --keep-local option ([#57](https://github.com/snakemake/snakemake-storage-plugin-gcs/issues/57)) ([7af7561](https://github.com/snakemake/snakemake-storage-plugin-gcs/commit/7af75610ada14c82cc228d721f3405945128ba9d))
+
 ## [1.1.2](https://github.com/snakemake/snakemake-storage-plugin-gcs/compare/v1.1.1...v1.1.2) (2024-10-07)
 
 
