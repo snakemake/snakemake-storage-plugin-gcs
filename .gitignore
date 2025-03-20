@@ -21,3 +21,4 @@ poetry.lock
 .pixi
 *.egg-info
 pixi.lock
+pixi.lock
