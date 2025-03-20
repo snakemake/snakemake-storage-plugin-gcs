@@ -1,59 +1,72 @@
-# %%
 import tempfile
 import os
-
+import pytest
 from google.auth.credentials import AnonymousCredentials
 from google.cloud import storage
 from google.api_core.exceptions import Conflict
 
-# This endpoint assumes that you are using the default port 4443 from the container.
-# If you are using a different port, please set the environment variable
-# STORAGE_EMULATOR_HOST.
-os.environ.setdefault("STORAGE_EMULATOR_HOST", "http://localhost:4443")
+# mypy: ignore-errors
 
 
-client = storage.Client(
-    credentials=AnonymousCredentials(),
-    project="test",
-    # Alternatively instead of using the global env STORAGE_EMULATOR_HOST. You can
-    # define it here.
-    # This will set this client object to point to the local google cloud storage.
-    # client_options={"api_endpoint": "http://localhost:4443"},
-)
+@pytest.fixture
+def storage_client():
+    os.environ.setdefault("STORAGE_EMULATOR_HOST", "http://localhost:4443")
+    client = storage.Client(
+        credentials=AnonymousCredentials(),
+        project="test",
+    )
+    return client
 
-# List the Buckets
-for bucket in client.list_buckets():
-    print(f"Bucket: {bucket.name}\n")
 
-    # List the Blobs in each Bucket
+@pytest.fixture
+def test_bucket(storage_client):
+    bucket = storage_client.bucket("snakemake-test-bucket")
+    try:
+        storage_client.create_bucket(bucket)
+    except Conflict:
+        pass
+    yield bucket
+
+    # Cleanup after tests
     for blob in bucket.list_blobs():
-        print(f"Blob: {blob.name}")
+        blob.delete()
+    bucket.delete()
 
-        # Print the content of the Blob
-        b = bucket.get_blob(blob.name)
+
+def test_bucket_creation(test_bucket):
+    assert test_bucket.exists()
+
+
+def test_blob_operations(test_bucket):
+    file_data = {
+        "test-file.txt": "Hello World!",
+        "test-file_2.txt": "Testing candidates",
+        "test-file_3.txt": "What",
+    }
+
+    # Test uploading blobs
+    for file_name, contents in file_data.items():
+        blob = test_bucket.blob(file_name)
+        blob.upload_from_string(contents)
+        assert blob.exists()
+
+    # Test listing blobs
+    blobs = list(test_bucket.list_blobs())
+    assert len(blobs) == len(file_data)
+
+    # Test downloading blobs
+    for blob in blobs:
         with tempfile.NamedTemporaryFile() as temp_file:
-            s = b.download_to_filename(temp_file.name)
-            temp_file.seek(0, 0)
-            print(temp_file.read(), "\n")
+            blob.download_to_filename(temp_file.name)
+            temp_file.seek(0)
+            content = temp_file.read().decode()
+            assert content == file_data[blob.name]
 
-# Create a new Bucket
-bucket = client.bucket("snakemake-test-bucket")
 
-try:
-    client.create_bucket(bucket)
-except Conflict:
-    # Bucket already created
-    pass
+def test_nonexistent_blob(test_bucket):
+    assert not test_bucket.blob("foo").exists()
 
-file_data = {
-    "test-file.txt": "Hello World!",
-    "test-file_2.txt": "Testing candidates",
-    "test-file_3.txt": "What",
-}
 
-for file_name, contents in file_data.items():
-    blob = bucket.blob(file_name)
-    blob.upload_from_string(contents)
-
-assert not bucket.blob("foo").exists()
-print(list(bucket.list_blobs()))
+def test_bucket_listing(storage_client, test_bucket):
+    buckets = list(storage_client.list_buckets())
+    assert any(b.name == "snakemake-test-bucket" for b in buckets)
