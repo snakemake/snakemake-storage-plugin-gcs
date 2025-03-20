@@ -42,7 +42,6 @@ publish = { features = ["publish"] }
 [tool.pixi.feature.test.dependencies]
 coverage = ">=7.3.1"
 pytest = ">=7.4.2,<9.0.0"
-ruff = "*"
 
 [tool.pixi.feature.test.pypi-dependencies]
 snakemake = { git = "https://github.com/snakemake/snakemake.git" }
