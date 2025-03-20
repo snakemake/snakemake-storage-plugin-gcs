@@ -12,6 +12,7 @@ CONTAINER_NAME = "snakemake-gcs-server"
 
 # mypy: ignore-errors
 
+
 def is_docker_installed() -> bool:
     """Check if Docker is installed and available."""
     try:
@@ -33,7 +34,8 @@ def is_docker_running() -> bool:
     except subprocess.CalledProcessError:
         return False
 
-@pytest.fixture(scope="session", autouse=True)
+
+@pytest.fixture(scope="session")
 def setup_fake_gcs() -> Generator[None, None, None]:
     """
     Setup fixture to start the Fake GCS Server container before tests,
@@ -74,7 +76,6 @@ def setup_fake_gcs() -> Generator[None, None, None]:
                 )
             except subprocess.CalledProcessError:
                 pass
-
 
             # Start a new container
             subprocess.run(
@@ -150,7 +151,7 @@ file_data = {
 }
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def storage_client(setup_fake_gcs):
     os.environ.setdefault("STORAGE_EMULATOR_HOST", "http://localhost:4443")
     client = storage.Client(
@@ -160,7 +161,7 @@ def storage_client(setup_fake_gcs):
     return client
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def test_bucket(storage_client):
     bucket = storage_client.bucket("snakemake-test-bucket")
     try:
@@ -198,9 +199,6 @@ def test_blob_operations(test_bucket):
             temp_file.seek(0)
             content = temp_file.read().decode()
             assert content == file_data[blob.name]
-
-
-
 
 
 if __name__ == "__main__":
