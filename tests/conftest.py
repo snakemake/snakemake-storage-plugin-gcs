@@ -2,31 +2,13 @@ import pytest
 import subprocess
 import time
 from typing import Generator
+import os
+from google.auth.credentials import AnonymousCredentials
+from google.cloud import storage
+from google.api_core.exceptions import Conflict
+import tempfile
 
 CONTAINER_NAME = "snakemake-gcs-server"
-
-
-# mypy: ignore-errors
-def is_docker_installed() -> bool:
-    """Check if Docker is installed and available."""
-    try:
-        subprocess.run(
-            ["docker", "--version"], check=True, capture_output=True, text=True
-        )
-        return True
-    except FileNotFoundError:
-        return False
-    except subprocess.CalledProcessError:
-        return False
-
-
-def is_docker_running() -> bool:
-    """Check if the Docker daemon is running."""
-    try:
-        subprocess.run(["docker", "ps"], check=True, capture_output=True, text=True)
-        return True
-    except subprocess.CalledProcessError:
-        return False
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -46,45 +28,68 @@ def setup_fake_gcs() -> Generator[None, None, None]:
             "Docker daemon is not running! Please start Docker before running tests."
         )
 
-    # Run the Fake GCS Server container
-    print("\n[pytest] Starting Fake GCS Server in Docker...")
-    try:
-        # Remove existing container if it exists
-        subprocess.run(["docker", "rm", "-f", CONTAINER_NAME], check=True)
-        # Start a new container
-        subprocess.run(
-            [
-                "docker",
-                "run",
-                "-d",
-                "--name",
-                CONTAINER_NAME,
-                "-p",
-                "4443:4443",
-                "-v",
-                "storage_data:/storage",
-                "fsouza/fake-gcs-server",
-                "-scheme",
-                "http",
-            ],
-            check=True,
-        )
+    # Check if the container is already running
+    existing_container = subprocess.run(
+        ["docker", "ps", "-q", "-f", f"name={CONTAINER_NAME}"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
 
-        # Wait for it to be ready
-        time.sleep(3)
-        # verify that the container is running
-        is_running = subprocess.run(
-            ["docker", "inspect", "-f", "{{.State.Running}}", CONTAINER_NAME],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        if is_running.stdout.strip() == "false":
-            pytest.fail("Failed to start Fake GCS Server: Container is not running.")
-        print("[pytest] Fake GCS Server started.")
+    if existing_container.stdout.strip():
+        print("[pytest] Fake GCS Server is already running.")
+    else:
+        # Run the Fake GCS Server container
+        print("\n[pytest] Starting Fake GCS Server in Docker...")
+        try:
+            # Remove existing container if it exists
+            try:
+                subprocess.run(
+                    ["docker", "rm", "-f", CONTAINER_NAME],
+                    check=False,
+                )
+            except subprocess.CalledProcessError:
+                pass
 
-    except subprocess.CalledProcessError as e:
-        pytest.fail(f"Failed to start Fake GCS Server: {e}")
+
+            # Start a new container
+            subprocess.run(
+                [
+                    "docker",
+                    "run",
+                    "-d",
+                    "--name",
+                    CONTAINER_NAME,
+                    "-p",
+                    "4443:4443",
+                    "-v",
+                    "storage_data:/storage",
+                    "fsouza/fake-gcs-server",
+                    "-scheme",
+                    "http",
+                ],
+                check=True,
+            )
+
+            # Wait for it to be ready
+            time.sleep(3)
+            # verify that the container is running
+            is_running = subprocess.run(
+                ["docker", "inspect", "-f", "{{.State.Running}}", CONTAINER_NAME],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            if is_running.stdout.strip() == "false":
+                pytest.fail(
+                    "Failed to start Fake GCS Server: Container is not running."
+                )
+            print("[pytest] Fake GCS Server started.")
+
+        except subprocess.CalledProcessError as e:
+            pytest.fail(f"Failed to start Fake GCS Server: {e}")
+
+    # upload file_data to the fake gcs server
 
     yield  # Run tests
 
@@ -116,16 +121,96 @@ def setup_fake_gcs() -> Generator[None, None, None]:
     print("[pytest] Fake GCS Server stopped.")
 
 
-# def test_fake_gcs_server_starts_and_stops(setup_fake_gcs) -> None:
-#     """Test that the fake GCS server starts up and stops properly"""
-#     # Verify container is running
-#     result = subprocess.run(
-#         ["docker", "inspect", "-f", "{{.State.Running}}", CONTAINER_NAME],
-#         check=True,
-#         capture_output=True,
-#         text=True,
-#     )
-#     assert result.stdout.strip() == "true"
+file_data = {
+    "test-file.txt": "Hello World!",
+    "test-file_2.txt": "Testing candidates",
+    "test-file_3.txt": "What",
+}
+
+
+@pytest.fixture(scope="session", autouse=True)
+def storage_client(setup_fake_gcs):
+    os.environ.setdefault("STORAGE_EMULATOR_HOST", "http://localhost:4443")
+    client = storage.Client(
+        credentials=AnonymousCredentials(),
+        project="test",
+    )
+    return client
+
+
+@pytest.fixture(scope="session", autouse=True)
+def test_bucket(storage_client):
+    bucket = storage_client.bucket("snakemake-test-bucket")
+    try:
+        storage_client.create_bucket(bucket)
+    except Conflict:
+        pass
+
+    # Test uploading blobs
+    for file_name, contents in file_data.items():
+        blob = bucket.blob(file_name)
+        blob.upload_from_string(contents)
+        assert blob.exists()
+
+    yield bucket
+
+    assert not bucket.blob("foo").exists()
+    buckets = list(storage_client.list_buckets())
+    assert any(b.name == "snakemake-test-bucket" for b in buckets)
+
+    # Cleanup after tests
+    for blob in bucket.list_blobs():
+        blob.delete()
+    bucket.delete()
+
+
+def test_blob_operations(test_bucket):
+    # Test listing blobs
+    blobs = list(test_bucket.list_blobs())
+    assert len(blobs) == len(file_data)
+
+    # Test downloading blobs
+    for blob in blobs:
+        with tempfile.NamedTemporaryFile() as temp_file:
+            blob.download_to_filename(temp_file.name)
+            temp_file.seek(0)
+            content = temp_file.read().decode()
+            assert content == file_data[blob.name]
+
+
+# mypy: ignore-errors
+def is_docker_installed() -> bool:
+    """Check if Docker is installed and available."""
+    try:
+        subprocess.run(
+            ["docker", "--version"], check=True, capture_output=True, text=True
+        )
+        return True
+    except FileNotFoundError:
+        return False
+    except subprocess.CalledProcessError:
+        return False
+
+
+def is_docker_running() -> bool:
+    """Check if the Docker daemon is running."""
+    try:
+        subprocess.run(["docker", "ps"], check=True, capture_output=True, text=True)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
+def test_fake_gcs_server_starts_and_stops(setup_fake_gcs) -> None:
+    """Test that the fake GCS server starts up and stops properly"""
+    # Verify container is running
+    result = subprocess.run(
+        ["docker", "inspect", "-f", "{{.State.Running}}", CONTAINER_NAME],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert result.stdout.strip() == "true"
 
 
 if __name__ == "__main__":

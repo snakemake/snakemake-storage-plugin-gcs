@@ -16,6 +16,7 @@ from snakemake_interface_storage_plugins.storage_object import (
     StorageObjectWrite,
     StorageObjectGlob,
 )
+from snakemake_interface_storage_plugins.common import Operation
 from snakemake_interface_storage_plugins.io import (
     IOCacheStorageInterface,
     get_constant_prefix,

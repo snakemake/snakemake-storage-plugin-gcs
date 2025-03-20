@@ -41,7 +41,7 @@ class TestStorage(TestStorageBase):
         return []
 
     # TODO remove if this is now in the base class
-    def test_storage_nonempty_directory(self, tmp_path):
+    def test_storage_nonempty_directory(self, tmp_path, test_bucket):
         # make a directory
         tmpdir = "test_nonemptydir"
 
@@ -82,7 +82,7 @@ class TestStorage(TestStorageBase):
                 obj.remove()
                 shutil.rmtree(obj.local_path())
 
-    def test_list_candidate_matches(self, tmp_path):
+    def test_list_candidate_matches(self, tmp_path, test_bucket):
         obj = self._get_obj(tmp_path, "gs://snakemake-test-bucket/")
         candidates = list(obj.list_candidate_matches())
         # I think the previous test deletes the first test_object
