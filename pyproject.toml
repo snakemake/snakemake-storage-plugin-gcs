@@ -48,11 +48,7 @@ ruff = "*"
 snakemake = { git = "https://github.com/snakemake/snakemake.git" }
 
 [tool.pixi.feature.test.tasks]
-# setup-docker = "docker run -d -p 4443:4443 -v storage_data:/storage fsouza/fake-gcs-server -scheme http"
-setup-gcs = { cmd = "python tests/test_fake_gcs.py" }
-test = { cmd = "coverage run -m pytest tests/tests.py", depends-on = [
-    "setup-gcs"
-] }
+test = { cmd = "coverage run -m pytest -s -vv tests/tests.py"}
 
 [tool.mypy]
 ignore_missing_imports = true # Temporary until https://github.com/snakemake/snakemake-interface-common/pull/55
