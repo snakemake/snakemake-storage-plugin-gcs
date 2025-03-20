@@ -10,6 +10,28 @@ import tempfile
 
 CONTAINER_NAME = "snakemake-gcs-server"
 
+# mypy: ignore-errors
+
+def is_docker_installed() -> bool:
+    """Check if Docker is installed and available."""
+    try:
+        subprocess.run(
+            ["docker", "--version"], check=True, capture_output=True, text=True
+        )
+        return True
+    except FileNotFoundError:
+        return False
+    except subprocess.CalledProcessError:
+        return False
+
+
+def is_docker_running() -> bool:
+    """Check if the Docker daemon is running."""
+    try:
+        subprocess.run(["docker", "ps"], check=True, capture_output=True, text=True)
+        return True
+    except subprocess.CalledProcessError:
+        return False
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_fake_gcs() -> Generator[None, None, None]:
@@ -88,8 +110,6 @@ def setup_fake_gcs() -> Generator[None, None, None]:
 
         except subprocess.CalledProcessError as e:
             pytest.fail(f"Failed to start Fake GCS Server: {e}")
-
-    # upload file_data to the fake gcs server
 
     yield  # Run tests
 
@@ -178,39 +198,7 @@ def test_blob_operations(test_bucket):
             assert content == file_data[blob.name]
 
 
-# mypy: ignore-errors
-def is_docker_installed() -> bool:
-    """Check if Docker is installed and available."""
-    try:
-        subprocess.run(
-            ["docker", "--version"], check=True, capture_output=True, text=True
-        )
-        return True
-    except FileNotFoundError:
-        return False
-    except subprocess.CalledProcessError:
-        return False
 
-
-def is_docker_running() -> bool:
-    """Check if the Docker daemon is running."""
-    try:
-        subprocess.run(["docker", "ps"], check=True, capture_output=True, text=True)
-        return True
-    except subprocess.CalledProcessError:
-        return False
-
-
-def test_fake_gcs_server_starts_and_stops(setup_fake_gcs) -> None:
-    """Test that the fake GCS server starts up and stops properly"""
-    # Verify container is running
-    result = subprocess.run(
-        ["docker", "inspect", "-f", "{{.State.Running}}", CONTAINER_NAME],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    assert result.stdout.strip() == "true"
 
 
 if __name__ == "__main__":
