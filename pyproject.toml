@@ -26,8 +26,11 @@ repository = "https://github.com/snakemake/snakemake-storage-plugin-gcs"
 documentation = "https://snakemake.github.io/snakemake-plugin-catalog/plugins/storage/gcs.html"
 
 [tool.pixi.project]
-channels = ["conda-forge"]
-platforms = ["osx-arm64"]
+channels = ["conda-forge", "bioconda"]
+platforms = ["osx-arm64", "linux-64"]
+
+[tool.pixi.tasks]
+gfa = { cmd = "git submodule foreach 'git fetch --all --tags --prune --jobs=10'", description = "Fetch all from all submodules" }
 
 [tool.pixi.dependencies]
 python = ">=3.11"
@@ -45,16 +48,20 @@ pytest = ">=7.4.2,<9.0.0"
 ruff = "*"
 
 [tool.pixi.feature.test.pypi-dependencies]
-snakemake = { git = "https://github.com/snakemake/snakemake.git" }
+# snakemake = { git = "https://github.com/snakemake/snakemake.git" }
+snakemake = { path = "../snakemake", editable = true }
 
 [tool.pixi.feature.test.tasks]
-setup-docker = "docker run -d -p 4443:4443 -v storage_data:/storage fsouza/fake-gcs-server -scheme http"
-setup-gcs = { cmd = "python tests/test_fake_gcs.py", depends-on = [
-    "setup-docker"
-] }
+# setup-docker = "docker run -d -p 4443:4443 -v storage_data:/storage fsouza/fake-gcs-server -scheme http"
+setup-gcs = { cmd = "python tests/test_fake_gcs.py" }
 test = { cmd = "coverage run -m pytest tests/tests.py", depends-on = [
     "setup-gcs"
 ] }
+
+[tool.mypy]
+ignore_missing_imports = true # Temporary until https://github.com/snakemake/snakemake-interface-common/pull/55
+disallow_untyped_defs = true
+warn_no_return = true
 
 [tool.pixi.feature.dev.tasks]
 format = "ruff format snakemake_storage_plugin_gcs"
