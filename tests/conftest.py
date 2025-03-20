@@ -68,7 +68,9 @@ def setup_fake_gcs() -> Generator[None, None, None]:
             try:
                 subprocess.run(
                     ["docker", "rm", "-f", CONTAINER_NAME],
+                    capture_output=True,
                     check=False,
+                    text=True,
                 )
             except subprocess.CalledProcessError:
                 pass
@@ -130,14 +132,14 @@ def setup_fake_gcs() -> Generator[None, None, None]:
     print("\n[pytest] Stopping Fake GCS Server...")
     subprocess.run(["docker", "rm", "-f", CONTAINER_NAME], check=True)
 
-    is_stopped = subprocess.run(
-        ["docker", "inspect", "-f", "{{.State.Running}}", CONTAINER_NAME],
+    container_exists = subprocess.run(
+        ["docker", "ps", "-a", "-q", "-f", f"name={CONTAINER_NAME}"],
         check=False,
         capture_output=True,
         text=True,
     )
-    if is_stopped.stdout.strip() == "true":
-        pytest.fail("Failed to stop Fake GCS Server: Container is still running.")
+    if container_exists.stdout.strip():
+        pytest.fail("Failed to remove Fake GCS Server container.")
     print("[pytest] Fake GCS Server stopped.")
 
 
