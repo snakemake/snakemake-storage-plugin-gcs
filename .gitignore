@@ -15,10 +15,7 @@ __pycache__
 **/__pycache__/
 **/*.pyc
 
-poetry.lock
-
 # pixi environments
 .pixi
 *.egg-info
-pixi.lock
 pixi.lock
