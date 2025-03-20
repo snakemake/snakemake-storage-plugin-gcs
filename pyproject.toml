@@ -45,8 +45,7 @@ pytest = ">=7.4.2,<9.0.0"
 ruff = "*"
 
 [tool.pixi.feature.test.pypi-dependencies]
-# snakemake = { git = "https://github.com/snakemake/snakemake.git" }
-snakemake = { path = "../snakemake", editable = true }
+snakemake = { git = "https://github.com/snakemake/snakemake.git" }
 
 [tool.pixi.feature.test.tasks]
 # setup-docker = "docker run -d -p 4443:4443 -v storage_data:/storage fsouza/fake-gcs-server -scheme http"
