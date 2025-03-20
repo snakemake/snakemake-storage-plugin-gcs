@@ -29,9 +29,6 @@ documentation = "https://snakemake.github.io/snakemake-plugin-catalog/plugins/st
 channels = ["conda-forge", "bioconda"]
 platforms = ["osx-arm64", "linux-64"]
 
-[tool.pixi.tasks]
-gfa = { cmd = "git submodule foreach 'git fetch --all --tags --prune --jobs=10'", description = "Fetch all from all submodules" }
-
 [tool.pixi.dependencies]
 python = ">=3.11"
 
