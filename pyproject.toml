@@ -1,31 +1,75 @@
-[tool.poetry]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
 name = "snakemake-storage-plugin-gcs"
 version = "1.1.3"
 description = "A Snakemake storage plugin for Google Cloud Storage"
 authors = [
-    "Vanessa Sochat <sochat1@llnl.gov>",
-    "Johannes Koester <johannes.koester@uni-due.de>"
+    { name = "Vanessa Sochat", email = "sochat1@llnl.gov" },
+    { name = "Johannes Koester", email = "johannes.koester@uni-due.de" }
 ]
 readme = "README.md"
+license = { text = "MIT" }
+keywords = ["snakemake", "storage", "plugin", "google cloud storage"]
+requires-python = ">=3.11"
+dependencies = [
+    "snakemake-interface-common>=1.14.2",
+    "snakemake-interface-storage-plugins>=4.0",
+    "google-cloud-storage>=2.12.0",
+    "google-crc32c>=1.1.2"
+]
+
+[project.urls]
 repository = "https://github.com/snakemake/snakemake-storage-plugin-gcs"
 documentation = "https://snakemake.github.io/snakemake-plugin-catalog/plugins/storage/gcs.html"
-license = "MIT"
-keywords = ["snakemake", "storage", "plugin", "google cloud storage"]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-snakemake-interface-common = "^1.14.2"
-snakemake-interface-storage-plugins = "^3.3.0"
-google-cloud-storage = "^2.12.0"
-google-crc32c = "^1.1.2"
+[tool.pixi.project]
+channels = ["conda-forge", "bioconda"]
+platforms = ["osx-arm64", "linux-64"]
 
-[tool.poetry.group.dev.dependencies]
-black = "^23.9.1"
-flake8 = "^6.1.0"
-coverage = "^7.3.1"
+[tool.pixi.dependencies]
+python = ">=3.11"
+
+[tool.pixi.pypi-dependencies]
+snakemake-storage-plugin-gcs = { path = ".", editable = true }
+
+[tool.pixi.environments]
+dev = { features = ["test", "dev"] }
+publish = { features = ["publish"] }
+
+[tool.pixi.feature.test.dependencies]
+coverage = ">=7.3.1"
 pytest = ">=7.4.2,<9.0.0"
-snakemake = {git="https://github.com/snakemake/snakemake.git"}
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.pixi.feature.test.pypi-dependencies]
+snakemake = { git = "https://github.com/snakemake/snakemake.git" }
+
+[tool.pixi.feature.test.tasks]
+test = { cmd = "coverage run -m pytest -s -vv tests/tests.py"}
+
+[tool.mypy]
+ignore_missing_imports = true # Temporary until https://github.com/snakemake/snakemake-interface-common/pull/55
+disallow_untyped_defs = true
+warn_no_return = true
+
+[tool.pixi.feature.dev.dependencies]
+ruff = "*"
+
+[tool.pixi.feature.dev.tasks]
+format = "ruff format snakemake_storage_plugin_gcs"
+lint = "ruff check"
+type-check = "mypy snakemake_storage_plugin_gcs/"
+qc = { depends-on = ["format", "lint", "type-check"] }
+
+# Publish
+[tool.pixi.feature.publish.dependencies]
+twine = ">=6.1.0,<7"
+python-build = ">=1.2.2,<2"
+
+[tool.pixi.feature.publish.tasks]
+build = { cmd = "python -m build", description = "Build the package into the dist/ directory" }
+check-build = { cmd = "python -m twine check dist/*", depends-on = [
+    "build",
+], description = "Check that the package can be uploaded" }

@@ -2,7 +2,7 @@ import os
 import shutil
 from typing import List, Optional, Type
 import uuid
-
+import pytest
 from snakemake_interface_storage_plugins.tests import TestStorageBase
 from snakemake_interface_storage_plugins.storage_provider import StorageProviderBase
 from snakemake_interface_storage_plugins.settings import StorageProviderSettingsBase
@@ -12,6 +12,9 @@ from snakemake_storage_plugin_gcs import (
     StorageProviderSettings,
 )
 
+
+# mypy: ignore-errors
+
 # Use local fake server as outlined here:
 # https://github.com/fsouza/fake-gcs-server
 os.environ["STORAGE_EMULATOR_HOST"] = "http://localhost:4443"
@@ -20,6 +23,11 @@ os.environ["STORAGE_EMULATOR_HOST"] = "http://localhost:4443"
 class TestStorage(TestStorageBase):
     __test__ = True
     files_only = True  #
+
+    @pytest.fixture(autouse=True)
+    def setup_test_bucket(self, test_bucket):
+        # This fixture will automatically run before each test method
+        self.test_bucket = test_bucket
 
     def get_query(self, tmp_path) -> str:
         return "gs://snakemake-test-bucket/test-file.txt"
@@ -40,7 +48,6 @@ class TestStorage(TestStorageBase):
     def get_example_args(self) -> List[str]:
         return []
 
-    # TODO remove if this is now in the base class
     def test_storage_nonempty_directory(self, tmp_path):
         # make a directory
         tmpdir = "test_nonemptydir"
