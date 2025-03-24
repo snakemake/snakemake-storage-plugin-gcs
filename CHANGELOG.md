@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.4](https://github.com/snakemake/snakemake-storage-plugin-gcs/compare/v1.1.3...v1.1.4) (2025-03-24)
+
+
+### Bug Fixes
+
+* convert to pixi, update test suite with gcs server fixture, adapt to interface changes ([#59](https://github.com/snakemake/snakemake-storage-plugin-gcs/issues/59)) ([d319a68](https://github.com/snakemake/snakemake-storage-plugin-gcs/commit/d319a684966f2269292a16433b342fc1207c5260))
+
 ## [1.1.3](https://github.com/snakemake/snakemake-storage-plugin-gcs/compare/v1.1.2...v1.1.3) (2025-03-12)
 
 
